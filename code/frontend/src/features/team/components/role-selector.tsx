@@ -13,16 +13,16 @@ interface RoleSelectorProps {
 
 const ROLES: { role: WorkspaceRole; color: string }[] = [
   {
-    role: 'OWNER',
+    role: 'ADMIN',
+    color: 'text-red-400 bg-red-500/10 border-red-500/30',
+  },
+  {
+    role: 'MANAGER',
     color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
   },
   {
-    role: 'ADMIN',
-    color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
-  },
-  {
     role: 'MEMBER',
-    color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
+    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
   },
 ];
 

@@ -144,14 +144,13 @@ export function WorkspaceMembersTab({ workspaceId, onOpenInviteMember }: Workspa
                     <td className="px-4 py-3">
                       {isAdmin && !isSelf ? (
                         <select
-                          value={member.role}
+                          value={member.role === 'OWNER' ? 'ADMIN' : member.role}
                           onChange={(e) => handleRoleChange(member.id, e.target.value as WorkspaceRole)}
-                          className="rounded-lg border border-surface-border bg-surface-alt px-2.5 py-1 text-xs font-semibold text-text-primary focus:border-primary focus:outline-none"
+                          className="rounded-lg border border-surface-border bg-surface-alt px-2.5 py-1 text-xs font-semibold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
                         >
                           <option value="MEMBER">Nhân viên (MEMBER)</option>
                           <option value="MANAGER">Quản lý (MANAGER)</option>
                           <option value="ADMIN">Quản trị viên (ADMIN)</option>
-                          <option value="OWNER">Chủ dự án (OWNER)</option>
                         </select>
                       ) : (
                         <span
