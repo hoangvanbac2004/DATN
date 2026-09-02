@@ -62,14 +62,9 @@ export function WorkspaceHeader({
   const canEditWorkspace = isAdmin;
 
   const tabs: { id: WorkspaceTab; labelKey: string; defaultLabel: string; icon: React.ElementType }[] = [
-    { id: 'summary',  labelKey: 'tabs.summary',  defaultLabel: 'Tổng quan',     icon: Globe },
-    { id: 'projects', labelKey: 'tabs.projects', defaultLabel: 'Dự án',         icon: ListTodo },
-    { id: 'backlog',  labelKey: 'tabs.backlog',  defaultLabel: 'Backlog',        icon: AlignLeft },
-    { id: 'board',    labelKey: 'tabs.board',    defaultLabel: 'Kanban Board',   icon: KanbanSquare },
-    { id: 'timeline', labelKey: 'tabs.timeline', defaultLabel: 'Timeline',       icon: GanttChartSquare },
-    { id: 'forms',    labelKey: 'tabs.forms',    defaultLabel: 'Biểu mẫu',      icon: ClipboardList },
-    { id: 'members',  labelKey: 'tabs.members',  defaultLabel: 'Thành viên',     icon: Users },
-    { id: 'code',     labelKey: 'tabs.code',     defaultLabel: 'Kho lưu trữ',   icon: Code2 },
+    { id: 'summary',  labelKey: 'tabs.summary',  defaultLabel: 'Tổng quan Workspace',       icon: Globe },
+    { id: 'projects', labelKey: 'tabs.projects', defaultLabel: 'Danh sách Dự án (Projects)', icon: ListTodo },
+    { id: 'members',  labelKey: 'tabs.members',  defaultLabel: 'Thành viên & Phân quyền',   icon: Users },
   ];
 
   const handleGoToEdit = () => {

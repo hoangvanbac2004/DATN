@@ -35,7 +35,7 @@ import { CreateWhiteboardModal, WhiteboardItem } from '@/features/project/compon
 import { RealtimeListener } from '@/features/realtime/components/realtime-listener';
 import type { TaskDto } from '@/features/task/types';
 
-type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'whiteboard' | 'forms';
+type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'wiki' | 'whiteboard' | 'forms';
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
   const resolvedParams = use(params);
@@ -199,6 +199,42 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           >
             <GitCommitHorizontal className="h-4 w-4" />
             <span>Biểu đồ Tiến độ (Gantt)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('wiki')}
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 transition ${
+              activeTab === 'wiki'
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>Tài liệu (Wiki)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('whiteboard')}
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 transition ${
+              activeTab === 'whiteboard'
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+            }`}
+          >
+            <PenTool className="h-4 w-4" />
+            <span>Bảng Vẽ</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('forms')}
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 transition ${
+              activeTab === 'forms'
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+            }`}
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            <span>Biểu mẫu</span>
           </button>
 
         </div>
@@ -457,8 +493,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           />
         )}
 
-        {/* Tab Content 5-7 removed (Docs, Whiteboard, Forms) */}
-        {false && (
+        {/* Tab Content 5: Tài liệu Wiki */}
+        {activeTab === 'wiki' && (
           <div className="rounded-2xl border border-surface-border bg-surface p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-surface-border pb-4">
               <div>
