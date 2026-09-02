@@ -80,6 +80,13 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
 
   const effectiveProjectId = selectedProjectId || defaultProjectId || '';
 
+  // Auto-select project if only 1 project exists
+  useEffect(() => {
+    if (projects.length === 1 && !selectedProjectId && !defaultProjectId) {
+      setSelectedProjectId(projects[0].id);
+    }
+  }, [projects, selectedProjectId, defaultProjectId]);
+
   const userProjectRole = getUserProjectRole(effectiveProjectId, currentUser);
   const isAdmin = userProjectRole === 'ADMIN';
   const isManager = userProjectRole === 'MANAGER';
@@ -398,22 +405,21 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
             </div>
           </div>
 
-          {/* Due Date */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-text-secondary">Hạn chót</label>
-            <input
-              {...register('dueDate')}
-              type="date"
-              className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs text-text-primary transition focus:border-primary focus:outline-none"
-            />
-          </div>
+          {/* Due Date & Sprint Row - ALWAYS VISIBLE */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-text-secondary">Hạn chót</label>
+              <input
+                {...register('dueDate')}
+                type="date"
+                className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs text-text-primary transition focus:border-primary focus:outline-none"
+              />
+            </div>
 
-          {/* Sprint Assignment Picker */}
-          {effectiveProjectId && (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-text-secondary flex items-center space-x-1.5">
                 <Layers className="h-3.5 w-3.5 text-primary" />
-                <span>Chu kỳ Sprint</span>
+                <span>{isStaff ? 'Đề xuất vào Sprint' : 'Chu kỳ Sprint'}</span>
               </label>
               <select
                 value={selectedSprintId}
@@ -427,15 +433,12 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
                   .filter((s) => s.status !== 'COMPLETED')
                   .map((s) => (
                     <option key={s.id} value={s.id} className="bg-surface text-text-primary">
-                      {s.status === 'ACTIVE' ? `${s.name} (Đang chạy)` : `${s.name} (Dự kiến)`}
+                      {s.status === 'ACTIVE' ? `${s.name} (Đang chạy)` : `${s.name} (Kế hoạch)`}
                     </option>
                   ))}
               </select>
-              <p className="text-[11px] text-text-muted">
-                Công việc sẽ xuất hiện trực tiếp trên Bảng Kanban của Sprint được chọn.
-              </p>
             </div>
-          )}
+          </div>
 
           {/* Modal Action Buttons */}
           <div className="flex items-center justify-end space-x-2 pt-3 border-t border-surface-border">

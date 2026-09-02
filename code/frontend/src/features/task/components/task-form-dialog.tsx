@@ -4,12 +4,18 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, Loader2, X } from 'lucide-react';
+import { CheckSquare, Loader2, X, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TaskDto, TaskPriority, TaskStatus } from '../types';
 import { useCreateTask, useCreateWorkspaceTask, useUpdateTask } from '../hooks/use-task';
 import { useWorkspaceStore } from '@/store/workspace-store';
 import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
+import {
+  SprintItem,
+  getStoredSprints,
+  getStoredTaskSprintMapping,
+  saveStoredTaskSprintMapping,
+} from '@/features/project/services/sprint-service';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Tên công việc không được để trống'),
@@ -44,6 +50,22 @@ export function TaskFormDialog({ projectId = '', workspaceId = '', task, isOpen,
   const updateMutation = useUpdateTask(task?.id || '');
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedSprintId, setSelectedSprintId] = useState<string>('backlog');
+  const [projectSprints, setProjectSprints] = useState<SprintItem[]>([]);
+
+  useEffect(() => {
+    if (projectId) {
+      const sprints = getStoredSprints(projectId);
+      setProjectSprints(sprints);
+      if (task?.id) {
+        const mapping = getStoredTaskSprintMapping(projectId);
+        setSelectedSprintId(mapping[task.id] || 'backlog');
+      } else {
+        const active = sprints.find((s) => s.status === 'ACTIVE');
+        setSelectedSprintId(active ? active.id : 'backlog');
+      }
+    }
+  }, [projectId, task, isOpen]);
 
   const {
     register,
@@ -103,6 +125,15 @@ export function TaskFormDialog({ projectId = '', workspaceId = '', task, isOpen,
         },
         {
           onSuccess: () => {
+            if (task?.id && projectId) {
+              const mapping = getStoredTaskSprintMapping(projectId);
+              if (selectedSprintId === 'backlog') {
+                delete mapping[task.id];
+              } else {
+                mapping[task.id] = selectedSprintId;
+              }
+              saveStoredTaskSprintMapping(mapping, projectId);
+            }
             onClose();
           },
           onError: (err: any) => {
@@ -122,7 +153,12 @@ export function TaskFormDialog({ projectId = '', workspaceId = '', task, isOpen,
           assigneeId: assigneeIdVal,
         },
         {
-          onSuccess: () => {
+          onSuccess: (createdTask) => {
+            if (createdTask?.id && projectId && selectedSprintId !== 'backlog') {
+              const mapping = getStoredTaskSprintMapping(projectId);
+              mapping[createdTask.id] = selectedSprintId;
+              saveStoredTaskSprintMapping(mapping, projectId);
+            }
             reset();
             onClose();
           },
@@ -143,7 +179,12 @@ export function TaskFormDialog({ projectId = '', workspaceId = '', task, isOpen,
           assigneeId: assigneeIdVal,
         },
         {
-          onSuccess: () => {
+          onSuccess: (createdTask) => {
+            if (createdTask?.id && projectId && selectedSprintId !== 'backlog') {
+              const mapping = getStoredTaskSprintMapping(projectId);
+              mapping[createdTask.id] = selectedSprintId;
+              saveStoredTaskSprintMapping(mapping, projectId);
+            }
             reset();
             onClose();
           },
@@ -267,6 +308,32 @@ export function TaskFormDialog({ projectId = '', workspaceId = '', task, isOpen,
               />
             </div>
           </div>
+
+          {/* Sprint Assignment Picker */}
+          {projectId && (
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-text-secondary flex items-center space-x-1.5">
+                <Layers className="h-3.5 w-3.5 text-primary" />
+                <span>Chu kỳ Sprint</span>
+              </label>
+              <select
+                value={selectedSprintId}
+                onChange={(e) => setSelectedSprintId(e.target.value)}
+                className="w-full rounded-lg border border-surface-border bg-surface-alt p-2.5 text-xs font-bold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
+              >
+                <option value="backlog" className="bg-surface text-amber-500 font-semibold">
+                  Chờ trong Backlog (Chưa đưa vào Sprint)
+                </option>
+                {projectSprints
+                  .filter((s) => s.status !== 'COMPLETED')
+                  .map((s) => (
+                    <option key={s.id} value={s.id} className="bg-surface text-text-primary">
+                      {s.status === 'ACTIVE' ? `${s.name} (Đang chạy)` : `${s.name} (Kế hoạch)`}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex items-center justify-end space-x-2 border-t border-surface-border pt-4">
             <button
