@@ -40,7 +40,6 @@ import { ConfirmStatusChangeModal } from '@/features/task/components/confirm-sta
 import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
 import { apiClient } from '@/lib/api-client';
 import {
-  PendingTaskRequestsSection,
   getStoredTaskRequests,
   setStoredTaskRequests,
   type TaskRequestItem,
@@ -590,9 +589,6 @@ export function WorkspaceBacklogTab({
           )}
         </div>
       </div>
-
-      {/* ================= TASK APPROVAL REQUESTS SECTION ================= */}
-      <PendingTaskRequestsSection projectId={projectId} workspaceId={workspaceId} />
 
       {/* 3. SPRINTS & BACKLOG CONTAINERS */}
       <div className="space-y-6">
