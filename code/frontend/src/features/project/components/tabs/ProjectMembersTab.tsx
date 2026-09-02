@@ -7,12 +7,8 @@ import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
 import { useAuthStore } from '@/store/auth-store';
 import {
   getStoredProjectMemberIds,
-  getStoredProjectMemberRoles,
   addMemberToProject,
   removeMemberFromProject,
-  updateMemberProjectRole,
-  getUserProjectRole,
-  ProjectRole,
 } from '@/features/project/services/project-member-service';
 import type { WorkspaceMemberDto } from '@/features/workspace/types';
 import type { WorkspaceRole } from '@/features/team/types';
@@ -30,28 +26,23 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
   const inviteMutation = useInviteMember(workspaceId || '');
 
   const [projectMemberIds, setProjectMemberIds] = useState<string[]>([]);
-  const [projectRoles, setProjectRoles] = useState<Record<string, ProjectRole>>({});
   const [search, setSearch] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Add Member Modal State
   const [selectedWsMemberId, setSelectedWsMemberId] = useState('');
-  const [selectedProjectRole, setSelectedProjectRole] = useState<ProjectRole>('MEMBER');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<WorkspaceRole>('MEMBER');
   const [addMode, setAddMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
 
-  // Determine current user's effective role in THIS project
-  const userProjectRole = getUserProjectRole(projectId, currentUser);
-  const isAdmin = userProjectRole === 'ADMIN';
-  const isManager = userProjectRole === 'MANAGER';
+  const isAdmin = currentUser?.roles?.includes('ROLE_ADMIN') || currentUser?.email === 'admin@gmail.com';
+  const isManager = !isAdmin && (currentUser?.roles?.includes('ROLE_MANAGER') || currentUser?.email === 'manager@gmail.com');
   const canManage = isAdmin || isManager;
 
-  // Sync project members and roles from storage and events
+  // Sync project members from storage and events
   useEffect(() => {
     const update = () => {
       setProjectMemberIds(getStoredProjectMemberIds(projectId));
-      setProjectRoles(getStoredProjectMemberRoles(projectId));
     };
     update();
     window.addEventListener('project_members_updated', update);
@@ -62,17 +53,19 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
     };
   }, [projectId]);
 
-  // Combine System Admins and explicitly assigned project members
+  // Combine Admins, Managers, and explicitly assigned project staff members
   const assignedMembers: WorkspaceMemberDto[] = React.useMemo(() => {
     const lowerIds = projectMemberIds.map((id) => id.toLowerCase());
 
     return workspaceMembers.filter((m) => {
       const roleUpper = String(m.role || '').toUpperCase();
-      // System Admin belongs to all projects
+      // Admins and Managers have rights across all workspace projects
       if (
         roleUpper === 'ADMIN' ||
         roleUpper === 'OWNER' ||
-        m.email?.toLowerCase() === 'admin@gmail.com'
+        roleUpper === 'MANAGER' ||
+        m.email?.toLowerCase() === 'admin@gmail.com' ||
+        m.email?.toLowerCase() === 'manager@gmail.com'
       ) {
         return true;
       }
@@ -108,17 +101,12 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
     }
     const member = workspaceMembers.find((m) => m.userId === selectedWsMemberId);
     if (member) {
-      addMemberToProject(projectId, member.userId, selectedProjectRole);
+      addMemberToProject(projectId, member.userId);
       if (member.email) {
-        addMemberToProject(projectId, member.email, selectedProjectRole);
+        addMemberToProject(projectId, member.email);
       }
-      toast.success(
-        `Đã thêm ${member.fullName || member.email} vào Dự án với quyền ${
-          selectedProjectRole === 'MANAGER' ? 'Quản lý' : 'Nhân viên'
-        }!`
-      );
+      toast.success(`Đã thêm ${member.fullName || member.email} vào Dự án thành công!`);
       setSelectedWsMemberId('');
-      setSelectedProjectRole('MEMBER');
       setIsAddModalOpen(false);
     }
   };
@@ -131,27 +119,18 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
       return;
     }
 
-    const projRole: ProjectRole = inviteRole === 'MANAGER' ? 'MANAGER' : 'MEMBER';
-    addMemberToProject(projectId, emailTrimmed, projRole);
+    addMemberToProject(projectId, emailTrimmed);
 
     inviteMutation.mutate(
       { email: emailTrimmed, role: inviteRole },
       {
         onSuccess: () => {
-          toast.success(
-            `Đã gửi lời mời và gán ${emailTrimmed} vào Dự án với quyền ${
-              projRole === 'MANAGER' ? 'Quản lý' : 'Nhân viên'
-            } thành công!`
-          );
+          toast.success(`Đã gửi lời mời và gán ${emailTrimmed} vào Dự án thành công!`);
           setInviteEmail('');
           setIsAddModalOpen(false);
         },
         onError: () => {
-          toast.success(
-            `Đã gán ${emailTrimmed} vào Dự án này với quyền ${
-              projRole === 'MANAGER' ? 'Quản lý' : 'Nhân viên'
-            }!`
-          );
+          toast.success(`Đã gán ${emailTrimmed} vào Dự án này!`);
           setInviteEmail('');
           setIsAddModalOpen(false);
         },
@@ -159,26 +138,22 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
     );
   };
 
-  const handleRoleChange = (m: WorkspaceMemberDto, newRole: ProjectRole) => {
-    if (m.userId) updateMemberProjectRole(projectId, m.userId, newRole);
-    if (m.email) updateMemberProjectRole(projectId, m.email, newRole);
-    toast.success(
-      `Đã cập nhật quyền của ${m.fullName || m.email} thành "${
-        newRole === 'MANAGER' ? 'Quản lý dự án' : 'Nhân viên dự án'
-      }"`
-    );
-  };
-
   const handleRemoveMember = (m: WorkspaceMemberDto) => {
     const roleUpper = String(m.role || '').toUpperCase();
-    if (roleUpper === 'ADMIN' || roleUpper === 'OWNER' || m.email === 'admin@gmail.com') {
-      toast.error('Không thể xóa Quản trị viên hệ thống khỏi dự án.');
+    if (
+      roleUpper === 'ADMIN' ||
+      roleUpper === 'OWNER' ||
+      roleUpper === 'MANAGER' ||
+      m.email === 'admin@gmail.com' ||
+      m.email === 'manager@gmail.com'
+    ) {
+      toast.error('Không thể xóa Quản trị viên hoặc Quản lý khỏi dự án.');
       return;
     }
 
     if (
       confirm(
-        `Bạn có chắc muốn xóa "${m.fullName || m.email}" khỏi dự án này? Thành viên này sẽ không còn quyền làm việc trong dự án.`
+        `Bạn có chắc muốn xóa "${m.fullName || m.email}" khỏi dự án này? Nhân viên này sẽ không còn quyền làm việc trong dự án.`
       )
     ) {
       if (m.userId) removeMemberFromProject(projectId, m.userId);
@@ -197,7 +172,7 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
             <span>Thành viên Dự án ({assignedMembers.length})</span>
           </h2>
           <p className="text-xs text-text-secondary mt-0.5">
-            Chỉ những thành viên trong danh sách này mới được phép nhận công việc và thao tác trong Dự án{' '}
+            Chỉ những nhân viên trong danh sách này mới được phép nhận công việc và thao tác trong Dự án{' '}
             <strong>{projectName || ''}</strong>.
           </p>
         </div>
@@ -233,7 +208,7 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
             <tr>
               <th className="px-5 py-3">Thành viên</th>
               <th className="px-5 py-3">Email</th>
-              <th className="px-5 py-3">Vai trò trong Dự án</th>
+              <th className="px-5 py-3">Vai trò</th>
               <th className="px-5 py-3 text-right">Thao tác</th>
             </tr>
           </thead>
@@ -246,12 +221,11 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
               </tr>
             ) : (
               filteredMembers.map((m) => {
-                const memberProjectRole = getUserProjectRole(projectId, {
-                  id: m.userId,
-                  email: m.email,
-                  role: m.role,
-                });
-                const isSystemAdmin = memberProjectRole === 'ADMIN';
+                const roleUpper = String(m.role || '').toUpperCase();
+                const isSystemAdmin =
+                  roleUpper === 'ADMIN' || roleUpper === 'OWNER' || m.email === 'admin@gmail.com';
+                const isProjectManager =
+                  !isSystemAdmin && (roleUpper === 'MANAGER' || m.email === 'manager@gmail.com');
 
                 return (
                   <tr key={m.userId || m.email} className="hover:bg-surface-alt/40 transition">
@@ -275,19 +249,10 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
                           <Shield className="h-3 w-3" />
                           <span>Quản trị viên</span>
                         </span>
-                      ) : canManage ? (
-                        <select
-                          value={memberProjectRole === 'MANAGER' ? 'MANAGER' : 'MEMBER'}
-                          onChange={(e) => handleRoleChange(m, e.target.value as ProjectRole)}
-                          className="rounded-lg border border-surface-border bg-surface-alt px-2.5 py-1 text-xs font-semibold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
-                        >
-                          <option value="MEMBER">Nhân viên (MEMBER)</option>
-                          <option value="MANAGER">Quản lý (MANAGER)</option>
-                        </select>
-                      ) : memberProjectRole === 'MANAGER' ? (
+                      ) : isProjectManager ? (
                         <span className="inline-flex items-center space-x-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-500">
                           <Shield className="h-3 w-3" />
-                          <span>Quản lý dự án</span>
+                          <span>Quản lý</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center space-x-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-500">
@@ -297,7 +262,7 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
                     </td>
 
                     <td className="px-5 py-3.5 text-right">
-                      {canManage && !isSystemAdmin && (
+                      {canManage && !isSystemAdmin && !isProjectManager && (
                         <button
                           type="button"
                           onClick={() => handleRemoveMember(m)}
@@ -374,7 +339,7 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
                   </label>
                   {availableWsMembers.length === 0 ? (
                     <p className="text-xs text-text-muted italic p-3 rounded-xl border border-surface-border bg-surface-alt">
-                      Tất cả thành viên trong Workspace đã được thêm vào dự án này!
+                      Tất cả nhân sự trong Workspace đã được thêm vào dự án này!
                     </p>
                   ) : (
                     <select
@@ -391,24 +356,6 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
                       ))}
                     </select>
                   )}
-                </div>
-
-                {/* Specific Role in this Project */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-secondary">
-                    Vai trò trong Dự án này
-                  </label>
-                  <select
-                    value={selectedProjectRole}
-                    onChange={(e) => setSelectedProjectRole(e.target.value as ProjectRole)}
-                    className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-semibold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
-                  >
-                    <option value="MEMBER">Nhân viên (MEMBER) - Chỉ làm công việc được giao</option>
-                    <option value="MANAGER">Quản lý (MANAGER) - Quản lý dự án, sprint và duyệt việc</option>
-                  </select>
-                  <p className="text-[11px] text-text-muted">
-                    Dù là Manager ở ngoài, nếu chọn &quot;Nhân viên&quot; thì trong dự án này người đó chỉ có quyền Nhân viên.
-                  </p>
                 </div>
 
                 <div className="flex items-center justify-end space-x-2 pt-2 border-t border-surface-border">
@@ -442,23 +389,6 @@ export function ProjectMembersTab({ projectId, workspaceId, projectName }: Proje
                     placeholder="nhanvien@congty.com"
                     className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs text-text-primary focus:border-primary focus:outline-none"
                   />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-secondary">
-                    Vai trò trong Dự án này
-                  </label>
-                  <select
-                    value={inviteRole}
-                    onChange={(e) => setInviteRole(e.target.value as WorkspaceRole)}
-                    className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-semibold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
-                  >
-                    <option value="MEMBER">Nhân viên (MEMBER) - Chỉ làm công việc được giao</option>
-                    <option value="MANAGER">Quản lý (MANAGER) - Quản lý dự án, sprint và duyệt việc</option>
-                  </select>
-                  <p className="text-[11px] text-text-muted">
-                    Người này sẽ chỉ được làm việc trong dự án này với vai trò tương ứng đã chọn.
-                  </p>
                 </div>
 
                 <div className="flex items-center justify-end space-x-2 pt-2 border-t border-surface-border">

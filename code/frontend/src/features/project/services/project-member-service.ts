@@ -1,7 +1,4 @@
 const STORAGE_PREFIX = 'taskflow_project_members_';
-const ROLES_PREFIX = 'taskflow_project_roles_';
-
-export type ProjectRole = 'MANAGER' | 'MEMBER';
 
 export interface MemberItemLike {
   userId?: string;
@@ -42,43 +39,11 @@ export function saveStoredProjectMemberIds(projectId: string, memberIds: string[
 }
 
 /**
- * Lấy bảng phân vai trò (Roles) trong Dự án cụ thể: { [userIdOrEmail]: 'MANAGER' | 'MEMBER' }
- */
-export function getStoredProjectMemberRoles(projectId: string): Record<string, ProjectRole> {
-  if (typeof window === 'undefined' || !projectId) return {};
-  try {
-    const raw = localStorage.getItem(`${ROLES_PREFIX}${projectId}`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed === 'object' && parsed !== null) return parsed;
-    }
-  } catch (e) {
-    console.error('Failed to parse project member roles from localStorage:', e);
-  }
-  return {};
-}
-
-/**
- * Lưu bảng phân vai trò trong Dự án.
- */
-export function saveStoredProjectMemberRoles(projectId: string, roles: Record<string, ProjectRole>): void {
-  if (typeof window === 'undefined' || !projectId) return;
-  try {
-    localStorage.setItem(`${ROLES_PREFIX}${projectId}`, JSON.stringify(roles));
-    window.dispatchEvent(new CustomEvent('project_members_updated', { detail: { projectId } }));
-  } catch (e) {
-    console.error('Failed to save project member roles to localStorage:', e);
-  }
-}
-
-/**
- * Thêm một thành viên (theo userId hoặc email) vào Dự án với vai trò cụ thể.
- * Mặc định vai trò là 'MEMBER' (Nhân viên).
+ * Thêm một thành viên (theo userId hoặc email) vào Dự án.
  */
 export function addMemberToProject(
   projectId: string,
-  userIdOrEmail: string,
-  projectRole: ProjectRole = 'MEMBER'
+  userIdOrEmail: string
 ): void {
   if (!projectId || !userIdOrEmail) return;
   const current = getStoredProjectMemberIds(projectId);
@@ -89,26 +54,6 @@ export function addMemberToProject(
     const updated = [...current, userIdOrEmail.trim()];
     saveStoredProjectMemberIds(projectId, updated);
   }
-
-  // Cập nhật vai trò trong dự án
-  const roles = getStoredProjectMemberRoles(projectId);
-  roles[normalized] = projectRole;
-  saveStoredProjectMemberRoles(projectId, roles);
-}
-
-/**
- * Cập nhật vai trò của một thành viên trong Dự án.
- */
-export function updateMemberProjectRole(
-  projectId: string,
-  userIdOrEmail: string,
-  newRole: ProjectRole
-): void {
-  if (!projectId || !userIdOrEmail) return;
-  const normalized = userIdOrEmail.trim().toLowerCase();
-  const roles = getStoredProjectMemberRoles(projectId);
-  roles[normalized] = newRole;
-  saveStoredProjectMemberRoles(projectId, roles);
 }
 
 /**
@@ -120,18 +65,46 @@ export function removeMemberFromProject(projectId: string, userIdOrEmail: string
   const normalized = userIdOrEmail.trim().toLowerCase();
   const updated = current.filter((id) => id.toLowerCase() !== normalized);
   saveStoredProjectMemberIds(projectId, updated);
-
-  const roles = getStoredProjectMemberRoles(projectId);
-  delete roles[normalized];
-  saveStoredProjectMemberRoles(projectId, roles);
 }
 
 /**
- * Lấy vai trò cụ thể của một người dùng trong Dự án:
- * - 'ADMIN': Quản trị viên hệ thống (Superadmin).
- * - 'MANAGER': Quản lý của Dự án này (Có quyền quản lý sprint, duyệt việc, quản lý thành viên).
- * - 'MEMBER': Nhân viên của Dự án này (Chỉ làm việc được giao, không có quyền quản lý).
- * - 'NONE': Không thuộc dự án này (Không có quyền xem hay làm việc).
+ * Kiểm tra xem một người dùng có thuộc về Dự án hay không:
+ * - Admin và Manager mặc định có quyền trên toàn bộ các dự án trong Không gian làm việc.
+ * - Nhân viên (Staff / Member): BẮT BUỘC phải được mời / phân công vào dự án đó mới được xem và làm việc.
+ */
+export function isUserInProject(
+  projectId: string,
+  user: { id?: string; email?: string; roles?: string[]; role?: string } | null
+): boolean {
+  if (!user || !projectId) return false;
+
+  const isAdmin =
+    user.roles?.includes('ROLE_ADMIN') ||
+    user.email === 'admin@gmail.com' ||
+    user.role === 'ADMIN' ||
+    user.role === 'OWNER';
+  const isManager =
+    user.roles?.includes('ROLE_MANAGER') ||
+    user.email === 'manager@gmail.com' ||
+    user.role === 'MANAGER';
+
+  if (isAdmin || isManager) return true;
+
+  const projectMembers = getStoredProjectMemberIds(projectId).map((m) => m.toLowerCase());
+  const userEmail = user.email?.toLowerCase();
+  const userId = user.id?.toLowerCase();
+
+  return (
+    (!!userEmail && projectMembers.includes(userEmail)) ||
+    (!!userId && projectMembers.includes(userId))
+  );
+}
+
+/**
+ * Lấy vai trò của người dùng trong Dự án:
+ * - Admin: 'ADMIN'
+ * - Manager: 'MANAGER' (Luôn có đầy đủ quyền Quản lý dự án, duyệt việc, tạo sprint)
+ * - Nhân viên: Nếu thuộc dự án -> 'MEMBER', ngược lại -> 'NONE'
  */
 export function getUserProjectRole(
   projectId: string,
@@ -139,61 +112,29 @@ export function getUserProjectRole(
 ): 'ADMIN' | 'MANAGER' | 'MEMBER' | 'NONE' {
   if (!user || !projectId) return 'NONE';
 
-  // 1. Quản trị viên hệ thống luôn có quyền ADMIN cao nhất
-  const isSystemAdmin =
+  const isAdmin =
     user.roles?.includes('ROLE_ADMIN') ||
     user.email === 'admin@gmail.com' ||
-    user.role === 'ADMIN';
-  if (isSystemAdmin) return 'ADMIN';
+    user.role === 'ADMIN' ||
+    user.role === 'OWNER';
+  if (isAdmin) return 'ADMIN';
 
-  // 2. Kiểm tra xem người dùng có được gán vào dự án hay không
-  const projectMembers = getStoredProjectMemberIds(projectId).map((m) => m.toLowerCase());
-  const userEmail = user.email?.toLowerCase();
-  const userId = user.id?.toLowerCase();
-
-  const isAssigned =
-    (!!userEmail && projectMembers.includes(userEmail)) ||
-    (!!userId && projectMembers.includes(userId));
-
-  if (!isAssigned) {
-    return 'NONE';
-  }
-
-  // 3. Nếu đã được gán vào dự án, kiểm tra chính xác vai trò đã được thiết lập trong dự án
-  const roles = getStoredProjectMemberRoles(projectId);
-  const explicitRole =
-    (userEmail && roles[userEmail]) ||
-    (userId && roles[userId]);
-
-  if (explicitRole) {
-    // Nếu được mời/gán là MEMBER thì DÙ tài khoản có là manager ở workspace thì trong dự án này VẪN LÀ MEMBER!
-    return explicitRole;
-  }
-
-  // Nếu trong dữ liệu cũ chưa có vai trò chi tiết:
-  const isGlobalManager =
+  const isManager =
     user.roles?.includes('ROLE_MANAGER') ||
     user.email === 'manager@gmail.com' ||
     user.role === 'MANAGER';
-  if (isGlobalManager) return 'MANAGER';
+  if (isManager) return 'MANAGER';
+
+  const isMember = isUserInProject(projectId, user);
+  if (!isMember) return 'NONE';
 
   return 'MEMBER';
 }
 
 /**
- * Kiểm tra xem một người dùng có thuộc về Dự án hay không.
- */
-export function isUserInProject(
-  projectId: string,
-  user: { id?: string; email?: string; roles?: string[]; role?: string } | null
-): boolean {
-  return getUserProjectRole(projectId, user) !== 'NONE';
-}
-
-/**
  * Lọc danh sách thành viên có thể được phân công (Assignee) cho một dự án cụ thể:
- * - Giữ lại Admin hệ thống.
- * - Các thành viên khác chỉ hiển thị nếu thuộc về Dự án này.
+ * - Admin & Manager luôn sẵn sàng được phân công trên các dự án.
+ * - Nhân viên chỉ hiển thị nếu thuộc về Dự án này.
  */
 export function filterAssigneesForProject<T extends MemberItemLike>(
   allWorkspaceMembers: T[],
@@ -208,7 +149,9 @@ export function filterAssigneesForProject<T extends MemberItemLike>(
     if (
       roleUpper === 'ADMIN' ||
       roleUpper === 'OWNER' ||
-      m.email?.toLowerCase() === 'admin@gmail.com'
+      roleUpper === 'MANAGER' ||
+      m.email?.toLowerCase() === 'admin@gmail.com' ||
+      m.email?.toLowerCase() === 'manager@gmail.com'
     ) {
       return true;
     }
@@ -225,8 +168,8 @@ export function filterAssigneesForProject<T extends MemberItemLike>(
 
 /**
  * Lọc danh sách Dự án hiển thị cho người dùng:
- * - Admin hệ thống được xem toàn bộ dự án.
- * - Các người dùng khác (kể cả Manager hay Staff) chỉ nhìn thấy dự án mà mình tham gia!
+ * - Admin và Manager được xem toàn bộ các dự án để quản lý và điều hành.
+ * - Nhân viên chỉ thấy các dự án mà mình được mời tham gia.
  */
 export function filterProjectsForUser<T extends { id: string }>(
   projects: T[],
@@ -239,9 +182,12 @@ export function filterProjectsForUser<T extends { id: string }>(
     user.email === 'admin@gmail.com' ||
     user.role === 'ADMIN' ||
     user.role === 'OWNER';
+  const isManager =
+    user.roles?.includes('ROLE_MANAGER') ||
+    user.email === 'manager@gmail.com' ||
+    user.role === 'MANAGER';
 
-  if (isAdmin) return projects;
+  if (isAdmin || isManager) return projects;
 
-  // Chỉ giữ lại các dự án mà người dùng tham gia (getUserProjectRole !== 'NONE')
-  return projects.filter((p) => getUserProjectRole(p.id, user) !== 'NONE');
+  return projects.filter((p) => isUserInProject(p.id, user));
 }
