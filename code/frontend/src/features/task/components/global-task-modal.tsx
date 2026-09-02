@@ -19,7 +19,7 @@ import {
   getStoredTaskSprintMapping,
   saveStoredTaskSprintMapping,
 } from '@/features/project/services/sprint-service';
-import { filterAssigneesForProject, filterProjectsForUser } from '@/features/project/services/project-member-service';
+import { filterAssigneesForProject, filterProjectsForUser, getUserProjectRole } from '@/features/project/services/project-member-service';
 
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -78,15 +78,16 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
     }
   }, [defaultProjectId]);
 
-  const isAdmin = currentUser?.roles?.includes('ROLE_ADMIN') || currentUser?.email === 'admin@gmail.com';
-  const isManager = currentUser?.roles?.includes('ROLE_MANAGER') || currentUser?.email === 'manager@gmail.com';
+  const effectiveProjectId = selectedProjectId || defaultProjectId || '';
+
+  const userProjectRole = getUserProjectRole(effectiveProjectId, currentUser);
+  const isAdmin = userProjectRole === 'ADMIN';
+  const isManager = userProjectRole === 'MANAGER';
   const isStaff = !isAdmin && !isManager;
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('backlog');
   const [projectSprints, setProjectSprints] = useState<SprintItem[]>([]);
-
-  const effectiveProjectId = selectedProjectId || defaultProjectId || '';
 
   useEffect(() => {
     if (effectiveProjectId) {

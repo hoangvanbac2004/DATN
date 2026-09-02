@@ -82,7 +82,7 @@ export function WorkspaceBacklogTab({
   const userProjectRole = getUserProjectRole(projectId || '', user);
   const isAdmin = userProjectRole === 'ADMIN';
   const isManager = userProjectRole === 'MANAGER';
-  const isStaff = userProjectRole === 'MEMBER';
+  const isStaff = !isAdmin && !isManager;
   const canManageSprint = isAdmin || isManager;
   const isProjectMember = userProjectRole !== 'NONE';
   const canCreateTask = !!user && isProjectMember;
