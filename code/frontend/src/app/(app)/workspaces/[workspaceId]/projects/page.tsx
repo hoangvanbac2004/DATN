@@ -1,10 +1,12 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useMemo } from 'react';
 import { Plus, Folder, Star, Archive, Layers } from 'lucide-react';
 import { useProjects } from '@/features/project/hooks/use-project';
 import { ProjectCard } from '@/features/project/components/project-card';
 import { CreateProjectDialog } from '@/features/project/components/create-project-dialog';
+import { useAuthStore } from '@/store/auth-store';
+import { filterProjectsForUser } from '@/features/project/services/project-member-service';
 
 type FilterType = 'all' | 'favorites' | 'archived';
 
@@ -20,7 +22,15 @@ export default function WorkspaceProjectsPage({ params }: { params: Promise<{ wo
     favorite: activeFilter === 'favorites' ? true : undefined,
   };
 
-  const { data: projects = [], isLoading } = useProjects(workspaceId, filterParams);
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
+  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
+  const canCreateProject = isAdmin || isManager;
+
+  const { data: rawProjects = [], isLoading } = useProjects(workspaceId, filterParams);
+  const projects = useMemo(() => {
+    return filterProjectsForUser(rawProjects, user);
+  }, [rawProjects, user]);
 
   return (
     <div className="space-y-8">
@@ -32,13 +42,15 @@ export default function WorkspaceProjectsPage({ params }: { params: Promise<{ wo
           <p className="text-xs text-gray-400">Manage all projects belonging to this workspace</p>
         </div>
 
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:bg-indigo-500"
-        >
-          <Plus className="h-4 w-4" />
-          <span>New Project</span>
-        </button>
+        {canCreateProject && (
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:bg-indigo-500 cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Project</span>
+          </button>
+        )}
       </div>
 
       {/* Filter Tabs */}

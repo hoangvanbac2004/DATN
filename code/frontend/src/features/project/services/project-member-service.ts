@@ -137,3 +137,32 @@ export function filterAssigneesForProject<T extends MemberItemLike>(
     return isAssignedToThisProject;
   });
 }
+
+/**
+ * Lọc danh sách Dự án hiển thị cho người dùng:
+ * - Admin và Manager được xem toàn bộ danh sách các dự án.
+ * - Nhân viên (Staff / Member) CHỈ ĐƯỢC THẤY các dự án mà mình được mời / phân công tham gia.
+ *   Dự án không tham gia sẽ BỊ ẨN HOÀN TOÀN khỏi danh sách!
+ */
+export function filterProjectsForUser<T extends { id: string }>(
+  projects: T[],
+  user: { id?: string; email?: string; roles?: string[]; role?: string } | null
+): T[] {
+  if (!user) return projects;
+
+  const isAdmin =
+    user.roles?.includes('ROLE_ADMIN') ||
+    user.email === 'admin@gmail.com' ||
+    user.role === 'ADMIN' ||
+    user.role === 'OWNER';
+  const isManager =
+    user.roles?.includes('ROLE_MANAGER') ||
+    user.email === 'manager@gmail.com' ||
+    user.role === 'MANAGER';
+
+  if (isAdmin || isManager) return projects;
+
+  // Đối với nhân viên: Chỉ giữ lại các dự án mà nhân viên có trong danh sách thành viên
+  return projects.filter((p) => isUserInProject(p.id, user));
+}
+

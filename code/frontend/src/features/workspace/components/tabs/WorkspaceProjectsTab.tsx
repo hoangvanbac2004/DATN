@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Folder, Star, Archive, Layers, Calendar, CheckSquare, ArrowRight } from 'lucide-react';
 import { useProjects } from '@/features/project/hooks/use-project';
 import { CreateProjectDialog } from '@/features/project/components/create-project-dialog';
+import { useAuthStore } from '@/store/auth-store';
+import { filterProjectsForUser } from '@/features/project/services/project-member-service';
 
 interface WorkspaceProjectsTabProps {
   workspaceId: string;
@@ -22,7 +24,15 @@ export function WorkspaceProjectsTab({ workspaceId }: WorkspaceProjectsTabProps)
     favorite: activeFilter === 'favorites' ? true : undefined,
   };
 
-  const { data: projects = [], isLoading } = useProjects(workspaceId, filterParams);
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
+  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
+  const canCreateProject = isAdmin || isManager;
+
+  const { data: rawProjects = [], isLoading } = useProjects(workspaceId, filterParams);
+  const projects = useMemo(() => {
+    return filterProjectsForUser(rawProjects, user);
+  }, [rawProjects, user]);
 
   return (
     <div className="space-y-6 text-text-primary pb-12">
@@ -38,13 +48,15 @@ export function WorkspaceProjectsTab({ workspaceId }: WorkspaceProjectsTabProps)
           </p>
         </div>
 
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center space-x-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary-hover transition active:scale-95"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Tạo dự án mới</span>
-        </button>
+        {canCreateProject && (
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center space-x-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary-hover transition active:scale-95 cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Tạo dự án mới</span>
+          </button>
+        )}
       </div>
 
       {/* Filter Tabs */}

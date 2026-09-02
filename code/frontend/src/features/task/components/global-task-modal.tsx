@@ -19,7 +19,7 @@ import {
   getStoredTaskSprintMapping,
   saveStoredTaskSprintMapping,
 } from '@/features/project/services/sprint-service';
-import { filterAssigneesForProject } from '@/features/project/services/project-member-service';
+import { filterAssigneesForProject, filterProjectsForUser } from '@/features/project/services/project-member-service';
 
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -67,7 +67,10 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
 
   const workspaceId = selectedWorkspaceId || activeWorkspace?.id || workspaces[0]?.id || '';
   const { data: members = [] } = useWorkspaceMembers(workspaceId || null);
-  const { data: projects = [] } = useProjects(workspaceId || null);
+  const { data: rawProjects = [] } = useProjects(workspaceId || null);
+  const projects = useMemo(() => {
+    return filterProjectsForUser(rawProjects, currentUser);
+  }, [rawProjects, currentUser]);
 
   useEffect(() => {
     if (defaultProjectId) {

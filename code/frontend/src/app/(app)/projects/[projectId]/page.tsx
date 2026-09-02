@@ -156,24 +156,34 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
         )}
 
-        {/* Staff Project Membership Warning Banner */}
-        {isStaff && !isMemberOfThisProject && (
-          <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-semibold text-amber-600 dark:text-amber-400 shadow-xs">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold">Bạn không thuộc danh sách nhân sự của Dự án này.</p>
-              <p className="text-[11px] opacity-90 font-normal mt-0.5">
-                Theo phân quyền, bạn chỉ được phép nhận công việc và thao tác trong các dự án mà bạn được phân công.
+        {/* If Staff does not belong to this project -> ACCESS DENIED */}
+        {isStaff && !isMemberOfThisProject ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-surface-border bg-surface p-12 text-center shadow-xs space-y-4 my-8">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+              <AlertCircle className="h-7 w-7" />
+            </div>
+            <div className="space-y-1.5 max-w-md">
+              <h2 className="text-lg font-bold text-text-primary font-heading">
+                Bạn không thuộc danh sách nhân sự của Dự án này
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Theo phân quyền hệ thống, bạn chỉ được phép xem và làm việc trong các dự án mà bạn được phân công tham gia.
               </p>
             </div>
+            <Link
+              href="/"
+              className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-primary-hover transition active:scale-95 cursor-pointer"
+            >
+              Quay về Trang chủ
+            </Link>
           </div>
-        )}
-
-        {/* Project Header Header */}
-        <ProjectHeader 
-          project={project}
-          onOpenCreateTask={() => setIsCreateTaskOpen(true)}
-        />
+        ) : (
+          <>
+            {/* Project Header Header */}
+            <ProjectHeader 
+              project={project}
+              onOpenCreateTask={() => setIsCreateTaskOpen(true)}
+            />
 
         {/* Tab Selector Navigation Bar */}
         <div className="flex items-center space-x-1.5 overflow-x-auto rounded-2xl border border-surface-border bg-surface p-1.5 text-xs font-bold text-text-secondary shadow-xs">
@@ -634,6 +644,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             </div>
           </div>
         </div>
+        )}
+        </>
         )}
 
         {/* Task Detail Modal */}
