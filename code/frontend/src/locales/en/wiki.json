@@ -1,0 +1,12 @@
+{
+  "title": "Wiki Documentation",
+  "subtitle": "Knowledge base and internal documentation",
+  "newPage": "New Page",
+  "searchPlaceholder": "Search docs...",
+  "pageTitlePlaceholder": "Page title...",
+  "emptyPage": "No document selected",
+  "versionHistory": "Version History",
+  "messages": {
+    "saveSuccess": "Document saved successfully!"
+  }
+}

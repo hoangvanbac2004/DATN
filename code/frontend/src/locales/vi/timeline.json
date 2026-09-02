@@ -1,0 +1,10 @@
+{
+  "title": "Tiến độ dự án (Gantt)",
+  "subtitle": "Sơ đồ phụ thuộc và tiến độ công việc",
+  "addDependency": "Thêm liên kết phụ thuộc",
+  "views": {
+    "day": "Ngày",
+    "week": "Tuần",
+    "month": "Tháng"
+  }
+}

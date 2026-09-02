@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: taskflow-backend
+  profiles:
+    active: dev
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+jwt:
+  secret: ${JWT_SECRET:c3VwZXItc2VjdXJlLWp3dC1zZWNyZXQta2V5LXRhc2tmbG93LWVudGVycHJpc2Utc2Fhcy1wbGF0Zm9ybS0yMDI2}
+  expiration: ${JWT_EXPIRE:86400000} # 24 hours
+  refresh-expiration: ${JWT_REFRESH_EXPIRE:604800000} # 7 days

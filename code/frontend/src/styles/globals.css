@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-app: #F8FAFC;
+    --bg-surface: #FFFFFF;
+    --bg-surface-alt: #F1F5F9;
+    --bg-sidebar: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+    --active-menu: #EEF2FF;
+    --active-menu-text: #4F46E5;
+    
+    --color-primary: #4F46E5;
+    --color-primary-hover: #4338CA;
+    --color-success: #16A34A;
+    --color-warning: #F59E0B;
+    --color-error: #DC2626;
+    --color-info: #2563EB;
+
+    --font-heading: var(--font-outfit), sans-serif;
+  }
+
+  .dark {
+    --bg-app: #0F172A;
+    --bg-surface: #1E293B;
+    --bg-surface-alt: #334155;
+    --bg-sidebar: #111827;
+    --border-color: #334155;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --active-menu: #312E81;
+    --active-menu-text: #818CF8;
+    
+    --color-primary: #818CF8;
+    --color-primary-hover: #A5B4FC;
+    --color-success: #22C55E;
+    --color-warning: #FBBF24;
+    --color-error: #F87171;
+    --color-info: #60A5FA;
+  }
+}
+
+body {
+  color: var(--text-primary);
+  background-color: var(--bg-app);
+  font-family: var(--font-inter), sans-serif;
+  min-height: 100vh;
+}

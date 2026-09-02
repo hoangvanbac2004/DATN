@@ -1,0 +1,10 @@
+{
+  "title": "Meeting Schedule",
+  "subtitle": "Track meetings and scheduled times across workspaces",
+  "today": "Today",
+  "views": {
+    "month": "Month",
+    "week": "Week",
+    "day": "Day"
+  }
+}

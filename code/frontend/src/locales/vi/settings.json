@@ -1,0 +1,61 @@
+{
+  "title": "Cài đặt & Tùy chọn",
+  "subtitle": "Quản lý hồ sơ cá nhân, tùy chọn không gian làm việc, giao diện và bảo mật",
+  "tabs": {
+    "profile": "Hồ sơ & Tài khoản",
+    "preferences": "Tùy chọn",
+    "security": "Bảo mật",
+    "notifications": "Thông báo"
+  },
+  "profile": {
+    "title": "Thông tin cá nhân",
+    "subtitle": "Cập nhật tên hiển thị và đường dẫn ảnh đại diện của bạn",
+    "emailLabel": "Địa chỉ Email (Chỉ đọc)",
+    "fullNameLabel": "Họ và tên",
+    "avatarLabel": "Đường dẫn ảnh đại diện (Tùy chọn)",
+    "saveBtn": "Lưu thay đổi hồ sơ",
+    "badgeTitle": "Người dùng đã xác thực",
+    "successMsg": "Cập nhật hồ sơ thành công!",
+    "errorMsg": "Cập nhật hồ sơ thất bại."
+  },
+  "preferences": {
+    "appearance": {
+      "title": "Giao diện hệ thống",
+      "subtitle": "Chọn chế độ màu giao diện hiển thị",
+      "dark": "Chế độ tối",
+      "light": "Chế độ sáng",
+      "system": "Theo hệ thống"
+    },
+    "region": {
+      "title": "Ngôn ngữ & Vùng miền",
+      "subtitle": "Cấu hình ngôn ngữ, múi giờ và định dạng ngày tháng",
+      "languageLabel": "Ngôn ngữ",
+      "languageDesc": "Chọn ngôn ngữ hiển thị của ứng dụng",
+      "timezoneLabel": "Múi giờ",
+      "timezoneDesc": "Đặt múi giờ địa phương cho hạn chót công việc",
+      "dateFormatLabel": "Định dạng ngày",
+      "dateFormatDesc": "Chọn định dạng hiển thị ngày tháng"
+    },
+    "languages": {
+      "vi": "Tiếng Việt",
+      "en": "English"
+    },
+    "successMsg": "Cập nhật tùy chọn thành công!"
+  },
+  "security": {
+    "title": "Bảo mật tài khoản",
+    "subtitle": "Đổi mật khẩu và quản lý phiên đăng nhập",
+    "changePassword": "Đổi mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmNewPassword": "Xác nhận mật khẩu mới",
+    "savePasswordBtn": "Cập nhật mật khẩu"
+  },
+  "notifications": {
+    "title": "Cài đặt thông báo",
+    "subtitle": "Quản lý kênh nhận thông báo và tin cập nhật",
+    "emailNotifications": "Thông báo qua Email",
+    "desktopNotifications": "Thông báo trên Màn hình",
+    "weeklyDigest": "Tóm tắt hàng tuần"
+  }
+}

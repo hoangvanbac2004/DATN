@@ -1,0 +1,57 @@
+{
+  "actions": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "add": "Thêm",
+    "update": "Cập nhật",
+    "confirm": "Xác nhận",
+    "close": "Đóng",
+    "back": "Quay lại",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "reset": "Đặt lại",
+    "export": "Xuất",
+    "import": "Nhập",
+    "copy": "Sao chép",
+    "share": "Chia sẻ",
+    "view": "Xem",
+    "apply": "Áp dụng",
+    "clear": "Xóa bộ lọc",
+    "submit": "Gửi",
+    "loading": "Đang tải...",
+    "processing": "Đang xử lý..."
+  },
+  "status": {
+    "active": "Đang hoạt động",
+    "inactive": "Không hoạt động",
+    "pending": "Đang chờ",
+    "inProgress": "Đang thực hiện",
+    "completed": "Hoàn thành",
+    "success": "Thành công",
+    "failed": "Thất bại",
+    "draft": "Bản nháp",
+    "archived": "Đã lưu trữ"
+  },
+  "messages": {
+    "genericError": "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+    "networkError": "Không thể kết nối với máy chủ. Vui lòng kiểm tra lại mạng.",
+    "saveSuccess": "Lưu thành công!",
+    "createSuccess": "Tạo thành công!",
+    "updateSuccess": "Cập nhật thành công!",
+    "deleteSuccess": "Xóa thành công!",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa không?",
+    "noData": "Không có dữ liệu"
+  },
+  "emptyState": {
+    "title": "Chưa có dữ liệu",
+    "description": "Không tìm thấy dữ liệu phù hợp."
+  },
+  "confirmDelete": {
+    "title": "Xác nhận xóa",
+    "description": "Bạn có chắc chắn muốn xóa không? Thao tác này không thể hoàn tác.",
+    "descriptionWithItem": "Bạn có chắc chắn muốn xóa \"{{name}}\" không? Thao tác này không thể hoàn tác."
+  }
+}

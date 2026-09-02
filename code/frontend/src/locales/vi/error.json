@@ -1,0 +1,11 @@
+{
+  "accessDenied": "Truy cập bị từ chối",
+  "accessDeniedDesc": "Bạn không có quyền truy cập vào trang hoặc tài nguyên này.",
+  "notFound": "Không tìm thấy trang",
+  "notFoundDesc": "Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.",
+  "serverError": "Lỗi máy chủ",
+  "serverErrorDesc": "Đã xảy ra sự cố trên máy chủ. Vui lòng thử lại sau.",
+  "backHome": "Quay về trang chủ",
+  "generic": "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+  "networkError": "Không thể kết nối tới máy chủ backend. Vui lòng kiểm tra dịch vụ backend."
+}

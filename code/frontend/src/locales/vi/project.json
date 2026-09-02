@@ -1,0 +1,28 @@
+{
+  "title": "Dự án",
+  "subtitle": "Theo dõi và quản lý các dự án trong không gian làm việc",
+  "createProject": "Tạo dự án mới",
+  "editProject": "Chỉnh sửa dự án",
+  "createModalTitle": "Tạo dự án mới",
+  "editModalTitle": "Chỉnh sửa thông tin dự án",
+  "nameLabel": "Tên dự án",
+  "namePlaceholder": "Ví dụ: Thiết kế lại Website, Phát triển Mobile App...",
+  "keyLabel": "Mã viết tắt dự án",
+  "keyPlaceholder": "Ví dụ: PROJ, WEB, APP...",
+  "descriptionLabel": "Mô tả dự án",
+  "descriptionPlaceholder": "Tóm tắt mục tiêu và phạm vi của dự án...",
+  "colorLabel": "Màu sắc đại diện",
+  "iconLabel": "Biểu tượng đại diện",
+  "categoryLabel": "Loại hình dự án",
+  "statusLabel": "Trạng thái dự án",
+  "startDate": "Ngày bắt đầu",
+  "endDate": "Ngày hoàn thành dự kiến",
+  "allProjects": "Tất cả dự án",
+  "noProjects": "Chưa có dự án nào",
+  "projectDetails": "Chi tiết dự án",
+  "messages": {
+    "createSuccess": "Tạo dự án thành công!",
+    "updateSuccess": "Cập nhật dự án thành công!",
+    "deleteSuccess": "Đã xóa dự án."
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "update": "Update",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "export": "Export",
+    "import": "Import",
+    "copy": "Copy",
+    "share": "Share",
+    "view": "View",
+    "apply": "Apply",
+    "clear": "Clear",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "processing": "Processing..."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "success": "Success",
+    "failed": "Failed",
+    "draft": "Draft",
+    "archived": "Archived"
+  },
+  "messages": {
+    "genericError": "An error occurred. Please try again later.",
+    "networkError": "Network error. Please check your connection.",
+    "saveSuccess": "Saved successfully!",
+    "createSuccess": "Created successfully!",
+    "updateSuccess": "Updated successfully!",
+    "deleteSuccess": "Deleted successfully!",
+    "confirmDelete": "Are you sure you want to delete this?",
+    "noData": "No data available"
+  },
+  "emptyState": {
+    "title": "No Data Found",
+    "description": "No matching data was found."
+  },
+  "confirmDelete": {
+    "title": "Confirm Delete",
+    "description": "Are you sure you want to delete this? This action cannot be undone.",
+    "descriptionWithItem": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  }
+}

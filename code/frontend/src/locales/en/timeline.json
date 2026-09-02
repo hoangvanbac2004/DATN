@@ -1,0 +1,10 @@
+{
+  "title": "Timeline (Gantt Chart)",
+  "subtitle": "Task dependencies and timeline schedule",
+  "addDependency": "Add Dependency",
+  "views": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month"
+  }
+}

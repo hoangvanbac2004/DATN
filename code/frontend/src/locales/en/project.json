@@ -1,0 +1,28 @@
+{
+  "title": "Projects",
+  "subtitle": "Track and manage projects within your workspace",
+  "createProject": "Create New Project",
+  "editProject": "Edit Project",
+  "createModalTitle": "Create New Project",
+  "editModalTitle": "Edit Project Details",
+  "nameLabel": "Project Name",
+  "namePlaceholder": "e.g., Website Redesign, Mobile App Development...",
+  "keyLabel": "Project Key Code",
+  "keyPlaceholder": "e.g., PROJ, WEB, APP...",
+  "descriptionLabel": "Project Description",
+  "descriptionPlaceholder": "Brief summary of project scope...",
+  "colorLabel": "Project Color Tag",
+  "iconLabel": "Project Icon",
+  "categoryLabel": "Project Category",
+  "statusLabel": "Project Status",
+  "startDate": "Start Date",
+  "endDate": "Target End Date",
+  "allProjects": "All Projects",
+  "noProjects": "No projects found",
+  "projectDetails": "Project Details",
+  "messages": {
+    "createSuccess": "Project created successfully!",
+    "updateSuccess": "Project updated successfully!",
+    "deleteSuccess": "Project deleted successfully."
+  }
+}

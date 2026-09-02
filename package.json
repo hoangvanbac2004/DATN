@@ -1,0 +1,23 @@
+{
+  "name": "taskflow-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TaskFlow - Enterprise Personal Productivity Platform Monorepo",
+  "scripts": {
+    "dev": "node scripts/run-dev.js",
+    "frontend": "npm --prefix code/frontend run dev",
+    "backend": "cd code/backend && mvn spring-boot:run",
+    "backend:neon": "node scripts/run-backend-neon.js",
+    "lint": "npm --prefix code/frontend run lint",
+    "format": "npm --prefix code/frontend run format"
+  },
+  "keywords": [
+    "productivity",
+    "task-management",
+    "monorepo",
+    "nextjs",
+    "spring-boot"
+  ],
+  "author": "TaskFlow Architecture Team",
+  "license": "MIT"
+}

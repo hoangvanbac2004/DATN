@@ -1,0 +1,10 @@
+{
+  "title": "Lịch họp",
+  "subtitle": "Theo dõi các cuộc họp và thời gian trao đổi trong các workspace",
+  "today": "Hôm nay",
+  "views": {
+    "month": "Tháng",
+    "week": "Tuần",
+    "day": "Ngày"
+  }
+}

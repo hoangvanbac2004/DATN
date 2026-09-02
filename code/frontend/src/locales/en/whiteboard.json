@@ -1,0 +1,13 @@
+{
+  "title": "Interactive Whiteboard",
+  "subtitle": "Visual canvas and brainstorming notes",
+  "tools": {
+    "select": "Select",
+    "rectangle": "Rectangle",
+    "circle": "Circle",
+    "stickyNote": "Sticky Note",
+    "text": "Text",
+    "line": "Connector Line",
+    "clearAll": "Clear Canvas"
+  }
+}

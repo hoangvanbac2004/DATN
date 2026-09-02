@@ -1,0 +1,8 @@
+{
+  "required": "This field is required",
+  "invalidEmail": "Invalid email address",
+  "minPassword": "Password must be at least {{min}} characters",
+  "minTitle": "Title must be at least {{min}} characters",
+  "passwordMismatch": "Passwords do not match",
+  "minName": "Name must be at least {{min}} characters"
+}

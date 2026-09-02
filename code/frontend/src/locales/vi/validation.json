@@ -1,0 +1,8 @@
+{
+  "required": "Trường này là bắt buộc",
+  "invalidEmail": "Địa chỉ email không hợp lệ",
+  "minPassword": "Mật khẩu phải có ít nhất {{min}} ký tự",
+  "minTitle": "Tiêu đề phải có ít nhất {{min}} ký tự",
+  "passwordMismatch": "Mật khẩu xác nhận không khớp",
+  "minName": "Tên phải có ít nhất {{min}} ký tự"
+}

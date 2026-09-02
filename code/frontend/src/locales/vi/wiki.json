@@ -1,0 +1,12 @@
+{
+  "title": "Tài liệu Wiki",
+  "subtitle": "Kho tri thức và tài liệu nội bộ",
+  "newPage": "Trang mới",
+  "searchPlaceholder": "Tìm kiếm tài liệu...",
+  "pageTitlePlaceholder": "Tiêu đề trang...",
+  "emptyPage": "Chưa chọn tài liệu nào",
+  "versionHistory": "Lịch sử phiên bản",
+  "messages": {
+    "saveSuccess": "Đã lưu tài liệu thành công!"
+  }
+}

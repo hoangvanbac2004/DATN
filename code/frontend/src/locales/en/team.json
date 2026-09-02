@@ -1,0 +1,44 @@
+{
+  "title": "Team Members",
+  "subtitle": "Manage workspace members and roles",
+  "inviteMember": "Invite Member",
+  "inviteModalTitle": "Invite New Member",
+  "emailLabel": "Email Address",
+  "emailPlaceholder": "colleague@example.com",
+  "roleLabel": "Role",
+  "roles": {
+    "OWNER": "Owner",
+    "ADMIN": "Admin",
+    "MEMBER": "Member",
+    "VIEWER": "Viewer"
+  },
+  "columns": {
+    "user": "User",
+    "email": "Email",
+    "role": "Role",
+    "joinedAt": "Joined Date",
+    "actions": "Actions"
+  },
+  "actions": {
+    "sendInvite": "Send Invite",
+    "changeRole": "Change Role",
+    "removeMember": "Remove Member"
+  },
+  "messages": {
+    "inviteSuccess": "Invitation sent successfully!",
+    "removeSuccess": "Member removed from workspace."
+  },
+  "createUserModal": {
+    "title": "Create New User Account",
+    "subtitle": "Assign system roles and access for new member",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "e.g. John Doe...",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "user@example.com",
+    "passwordLabel": "Initial Password",
+    "passwordPlaceholder": "Minimum 6 characters...",
+    "roleLabel": "Role & Permissions",
+    "submit": "Create Account",
+    "success": "Account created successfully for {{email}}"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "title": "Settings & Preferences",
+  "subtitle": "Manage your profile, workspace preferences, theme, and security settings",
+  "tabs": {
+    "profile": "Profile & Account",
+    "preferences": "Preferences",
+    "security": "Security",
+    "notifications": "Notifications"
+  },
+  "profile": {
+    "title": "Personal Information",
+    "subtitle": "Update your public display name and avatar URL",
+    "emailLabel": "Email Address (Read-only)",
+    "fullNameLabel": "Full Name",
+    "avatarLabel": "Avatar Image URL (Optional)",
+    "saveBtn": "Save Profile",
+    "badgeTitle": "Authenticated User",
+    "successMsg": "Profile updated successfully!",
+    "errorMsg": "Failed to update profile."
+  },
+  "preferences": {
+    "appearance": {
+      "title": "Appearance Theme",
+      "subtitle": "Select interface color scheme",
+      "dark": "Dark Mode",
+      "light": "Light Mode",
+      "system": "System Default"
+    },
+    "region": {
+      "title": "Language & Region",
+      "subtitle": "Configure language, timezone, and date format",
+      "languageLabel": "Language",
+      "languageDesc": "Select application language",
+      "timezoneLabel": "Timezone",
+      "timezoneDesc": "Set local timezone for task due dates",
+      "dateFormatLabel": "Date Format",
+      "dateFormatDesc": "Choose date display format"
+    },
+    "languages": {
+      "vi": "Tiếng Việt (Vietnamese)",
+      "en": "English (US)"
+    },
+    "successMsg": "Preference updated successfully!"
+  },
+  "security": {
+    "title": "Account Security",
+    "subtitle": "Change password and manage session security",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "savePasswordBtn": "Update Password"
+  },
+  "notifications": {
+    "title": "Notification Preferences",
+    "subtitle": "Manage channels for alerts and digest updates",
+    "emailNotifications": "Email Notifications",
+    "desktopNotifications": "Desktop Notifications",
+    "weeklyDigest": "Weekly Digest"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "title": "Quản lý thành viên",
+  "subtitle": "Quản lý các thành viên và phân quyền trong không gian làm việc",
+  "inviteMember": "Mời thành viên",
+  "inviteModalTitle": "Mời thành viên tham gia",
+  "emailLabel": "Địa chỉ Email",
+  "emailPlaceholder": "colleague@example.com",
+  "roleLabel": "Vai trò",
+  "roles": {
+    "OWNER": "Chủ sở hữu",
+    "ADMIN": "Quản trị viên",
+    "MEMBER": "Thành viên",
+    "VIEWER": "Người xem"
+  },
+  "columns": {
+    "user": "Người dùng",
+    "email": "Email",
+    "role": "Vai trò",
+    "joinedAt": "Ngày tham gia",
+    "actions": "Thao tác"
+  },
+  "actions": {
+    "sendInvite": "Gửi lời mời",
+    "changeRole": "Đổi vai trò",
+    "removeMember": "Xóa khỏi không gian"
+  },
+  "messages": {
+    "inviteSuccess": "Đã gửi lời mời thành công!",
+    "removeSuccess": "Đã xóa thành viên khỏi không gian làm việc."
+  },
+  "createUserModal": {
+    "title": "Tạo tài khoản mới",
+    "subtitle": "Cấp quyền hệ thống cho thành viên mới",
+    "fullNameLabel": "Họ và tên",
+    "fullNamePlaceholder": "Ví dụ: Nguyễn Văn A...",
+    "emailLabel": "Địa chỉ Email",
+    "emailPlaceholder": "user@example.com",
+    "passwordLabel": "Mật khẩu ban đầu",
+    "passwordPlaceholder": "Tối thiểu 6 ký tự...",
+    "roleLabel": "Vai trò & Phân quyền",
+    "submit": "Xác nhận tạo",
+    "success": "Đã tạo tài khoản thành công cho {{email}}"
+  }
+}

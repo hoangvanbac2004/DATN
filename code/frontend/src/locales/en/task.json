@@ -1,0 +1,53 @@
+{
+  "title": "Task Management",
+  "subtitle": "Track your tasks and work items",
+  "createTask": "Create New Task",
+  "assignTask": "Assign Task",
+  "assignTaskModalTitle": "Assign Task to Member",
+  "assignTaskModalSubtitle": "Select team member and assign work item",
+  "assignAction": "Assign Task",
+  "selectTask": "Select Task to Assign",
+  "newTaskOption": "+ Create new task to assign",
+  "taskDetails": "Task Details",
+  "quickCreate": "Quick Create Task",
+  "fields": {
+    "title": "Task Title",
+    "titlePlaceholder": "Enter task title...",
+    "description": "Description",
+    "descriptionPlaceholder": "Add detailed description...",
+    "status": "Status",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "unassigned": "Unassigned",
+    "dueDate": "Due Date",
+    "project": "Project",
+    "tags": "Tags",
+    "estimatedHours": "Estimated Hours"
+  },
+  "priorities": {
+    "URGENT": "Urgent",
+    "HIGH": "High",
+    "MEDIUM": "Medium",
+    "LOW": "Low"
+  },
+  "statuses": {
+    "TODO": "To Do",
+    "IN_PROGRESS": "In Progress",
+    "IN_REVIEW": "In Review",
+    "DONE": "Done",
+    "CANCELLED": "Cancelled"
+  },
+  "filters": {
+    "searchPlaceholder": "Search tasks...",
+    "allPriorities": "All Priorities",
+    "allStatuses": "All Statuses",
+    "allAssignees": "All Assignees",
+    "myTasksOnly": "My Tasks Only"
+  },
+  "noTasks": "No tasks found in list",
+  "messages": {
+    "createSuccess": "Task created successfully!",
+    "updateSuccess": "Task updated successfully!",
+    "deleteSuccess": "Task deleted successfully."
+  }
+}

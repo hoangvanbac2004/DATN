@@ -1,0 +1,35 @@
+{
+  "menu": {
+    "dashboard": "Tổng quan",
+    "tasks": "Công việc",
+    "projects": "Dự án",
+    "calendar": "Lịch họp",
+    "timeline": "Tiến độ (Gantt)",
+    "whiteboard": "Bảng vẽ",
+    "wiki": "Tài liệu Wiki",
+    "analytics": "Báo cáo",
+    "team": "Thành viên",
+    "settings": "Cài đặt",
+    "notifications": "Thông báo",
+    "profile": "Trang cá nhân",
+    "search": "Tìm kiếm"
+  },
+  "submenus": {
+    "myTasks": "Công việc của tôi",
+    "allTasks": "Tất cả công việc",
+    "overdueTasks": "Công việc quá hạn",
+    "personalPreferences": "Tùy chọn cá nhân",
+    "security": "Bảo mật",
+    "notificationSettings": "Cài đặt thông báo"
+  },
+  "user": {
+    "viewProfile": "Xem trang cá nhân",
+    "logout": "Đăng xuất"
+  },
+  "roles": {
+    "admin": "Quản trị viên",
+    "manager": "Quản lý",
+    "staff": "Nhân viên",
+    "systemAdmin": "Quản trị hệ thống"
+  }
+}

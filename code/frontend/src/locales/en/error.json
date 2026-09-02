@@ -1,0 +1,11 @@
+{
+  "accessDenied": "Access Denied",
+  "accessDeniedDesc": "You do not have permission to access this page or resource.",
+  "notFound": "Page Not Found",
+  "notFoundDesc": "The page you are looking for does not exist or has been moved.",
+  "serverError": "Server Error",
+  "serverErrorDesc": "An error occurred on the server. Please try again later.",
+  "backHome": "Back to Home",
+  "generic": "An error occurred. Please try again.",
+  "networkError": "Unable to connect to backend server. Please check your backend service."
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Bảng vẽ Whiteboard",
+  "subtitle": "Bảng ghi chú và phác thảo trực quan",
+  "tools": {
+    "select": "Chọn",
+    "rectangle": "Hình chữ nhật",
+    "circle": "Hình tròn",
+    "stickyNote": "Ghi chú dán",
+    "text": "Văn bản",
+    "line": "Đường nối",
+    "clearAll": "Xóa toàn bộ"
+  }
+}

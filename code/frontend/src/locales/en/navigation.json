@@ -1,0 +1,35 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
+    "projects": "Projects",
+    "calendar": "Meetings",
+    "timeline": "Timeline (Gantt)",
+    "whiteboard": "Whiteboard",
+    "wiki": "Wiki Docs",
+    "analytics": "Analytics",
+    "team": "Team",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "search": "Search"
+  },
+  "submenus": {
+    "myTasks": "My Tasks",
+    "allTasks": "All Tasks",
+    "overdueTasks": "Overdue Tasks",
+    "personalPreferences": "Preferences",
+    "security": "Security",
+    "notificationSettings": "Notification Settings"
+  },
+  "user": {
+    "viewProfile": "View Profile",
+    "logout": "Sign Out"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Project Manager",
+    "staff": "Staff Employee",
+    "systemAdmin": "System Admin"
+  }
+}
