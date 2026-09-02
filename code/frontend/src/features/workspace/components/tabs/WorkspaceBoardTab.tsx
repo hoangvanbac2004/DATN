@@ -292,30 +292,26 @@ export function WorkspaceBoardTab({
     switch (p) {
       case 'URGENT':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-[9px] font-bold text-red-500">
-            <Flame className="h-2.5 w-2.5" />
-            <span>Khẩn cấp</span>
+          <span className="rounded-md border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-[9px] font-bold text-red-500">
+            Khẩn cấp
           </span>
         );
       case 'HIGH':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-500">
-            <ArrowUpCircle className="h-2.5 w-2.5" />
-            <span>Cao</span>
+          <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-500">
+            Cao
           </span>
         );
       case 'LOW':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md border border-slate-500/30 bg-slate-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-slate-400">
-            <CircleDot className="h-2.5 w-2.5" />
-            <span>Thấp</span>
+          <span className="rounded-md border border-slate-500/30 bg-slate-500/10 px-1.5 py-0.5 text-[9px] font-medium text-slate-400">
+            Thấp
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-blue-500">
-            <CircleDot className="h-2.5 w-2.5" />
-            <span>Trung bình</span>
+          <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-medium text-blue-500">
+            Trung bình
           </span>
         );
     }
@@ -327,24 +323,22 @@ export function WorkspaceBoardTab({
       const sprint = sprints.find((s) => s.id === assigned);
       if (sprint) {
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-500">
-            <Layers className="h-2.5 w-2.5" />
-            <span>{sprint.name}</span>
+          <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-500">
+            {sprint.name}
           </span>
         );
       }
     }
     if (activeSprint && (task.status === 'IN_PROGRESS' || task.status === 'IN_REVIEW')) {
       return (
-        <span className="inline-flex items-center space-x-1 rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-500">
-          <Layers className="h-2.5 w-2.5" />
-          <span>{activeSprint.name}</span>
+        <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-500">
+          {activeSprint.name}
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center space-x-1 rounded-md border border-surface-border bg-surface-alt px-1.5 py-0.5 text-[9px] font-semibold text-text-muted">
-        <span>Backlog</span>
+      <span className="rounded-md border border-surface-border bg-surface-alt px-1.5 py-0.5 text-[9px] font-medium text-text-muted">
+        Backlog
       </span>
     );
   };
@@ -512,21 +506,21 @@ export function WorkspaceBoardTab({
             >
               {activeSprint && (
                 <option value="ACTIVE_SPRINT" className="bg-surface text-blue-500 font-bold">
-                  ⚡ {activeSprint.name} (Đang chạy)
+                  {activeSprint.name} (Đang chạy)
                 </option>
               )}
               <option value="ALL" className="bg-surface text-text-primary">
-                🌐 Tất cả công việc (Toàn dự án)
+                Tất cả công việc
               </option>
               {sprints
                 .filter((s) => s.status !== 'ACTIVE' && s.status !== 'COMPLETED')
                 .map((s) => (
                   <option key={s.id} value={s.id} className="bg-surface text-amber-500">
-                    ➔ {s.name} (Dự kiến)
+                    {s.name} (Dự kiến)
                   </option>
                 ))}
               <option value="BACKLOG" className="bg-surface text-slate-400">
-                📦 Kho Tồn đọng (Backlog)
+                Kho Tồn đọng (Backlog)
               </option>
             </select>
           </div>
@@ -604,7 +598,6 @@ export function WorkspaceBoardTab({
                 <div className="flex items-center justify-between px-1 pb-1 border-b border-surface-border/40">
                   <div className="flex items-center space-x-2">
                     <span className={`h-2.5 w-2.5 rounded-full ${col.dotBg}`} />
-                    <ColumnIcon className={`h-4 w-4 ${col.badgeText}`} />
                     <span className="text-xs font-bold text-text-primary font-heading">
                       {col.title}
                     </span>
@@ -678,9 +671,8 @@ export function WorkspaceBoardTab({
                           <div className="mt-3 flex items-center justify-between border-t border-surface-border/50 pt-2 text-[11px]">
                             <div className="flex items-center space-x-2 text-text-muted">
                               {dueDateFormatted ? (
-                                <span className="flex items-center space-x-1 text-[10px] font-medium text-text-secondary">
-                                  <Calendar className="h-3 w-3 text-primary" />
-                                  <span>{dueDateFormatted}</span>
+                                <span className="text-[10px] font-medium text-text-secondary">
+                                  {dueDateFormatted}
                                 </span>
                               ) : (
                                 <span className="text-[10px] text-text-muted italic">Không có hạn</span>

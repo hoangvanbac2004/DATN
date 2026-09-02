@@ -581,30 +581,26 @@ export function WorkspaceBacklogTab({
     switch (p) {
       case 'URGENT':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md bg-red-500/10 border border-red-500/30 px-2 py-0.5 text-[10px] font-bold text-red-500">
-            <Flame className="h-3 w-3 animate-pulse" />
-            <span>Khẩn cấp</span>
+          <span className="rounded-md bg-red-500/10 border border-red-500/30 px-2 py-0.5 text-[10px] font-bold text-red-500">
+            Khẩn cấp
           </span>
         );
       case 'HIGH':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-500">
-            <ArrowUpCircle className="h-3 w-3" />
-            <span>Cao</span>
+          <span className="rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-500">
+            Cao
           </span>
         );
       case 'LOW':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md bg-slate-500/10 border border-slate-500/30 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
-            <CircleDot className="h-3 w-3" />
-            <span>Thấp</span>
+          <span className="rounded-md bg-slate-500/10 border border-slate-500/30 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+            Thấp
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center space-x-1 rounded-md bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[10px] font-semibold text-blue-500">
-            <CircleDot className="h-3 w-3" />
-            <span>Trung bình</span>
+          <span className="rounded-md bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[10px] font-medium text-blue-500">
+            Trung bình
           </span>
         );
     }
@@ -615,30 +611,26 @@ export function WorkspaceBacklogTab({
       case 'DONE':
       case 'COMPLETED':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-500">
-            <CheckCircle className="h-3 w-3" />
-            <span>Hoàn thành</span>
+          <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-500">
+            Hoàn thành
           </span>
         );
       case 'IN_PROGRESS':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-full bg-blue-500/10 border border-blue-500/30 px-2.5 py-0.5 text-[11px] font-bold text-blue-500">
-            <PlayCircle className="h-3 w-3 animate-pulse" />
-            <span>Đang làm</span>
+          <span className="rounded-full bg-blue-500/10 border border-blue-500/30 px-2.5 py-0.5 text-[11px] font-bold text-blue-500">
+            Đang làm
           </span>
         );
       case 'IN_REVIEW':
         return (
-          <span className="inline-flex items-center space-x-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-500">
-            <Clock className="h-3 w-3" />
-            <span>Đang xem xét</span>
+          <span className="rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-500">
+            Đang xem xét
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center space-x-1 rounded-full bg-slate-500/10 border border-slate-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">
-            <CircleDot className="h-3 w-3" />
-            <span>Cần làm</span>
+          <span className="rounded-full bg-slate-500/10 border border-slate-500/30 px-2.5 py-0.5 text-[11px] font-medium text-slate-400">
+            Cần làm
           </span>
         );
     }
@@ -960,9 +952,6 @@ export function WorkspaceBacklogTab({
                                 isDone ? 'line-through text-text-muted decoration-emerald-500 decoration-2' : ''
                               }`}
                             >
-                              {isDone && (
-                                <CheckCircle2 className="inline-block mr-1.5 h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                              )}
                               {task.title}
                             </span>
                           </div>
@@ -976,21 +965,19 @@ export function WorkspaceBacklogTab({
                               <button
                                 type="button"
                                 onClick={() => handleAssignTaskToSprint(task.id, 'backlog')}
-                                className="flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30 px-2 py-1 text-[11px] font-medium text-text-muted transition active:scale-95 cursor-pointer"
+                                className="rounded-xl border border-surface-border bg-surface-alt hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30 px-2.5 py-1 text-[11px] font-medium text-text-muted transition active:scale-95 cursor-pointer"
                                 title="Hoàn công việc về Backlog"
                               >
-                                <RotateCcw className="h-3 w-3" />
-                                <span>Về Backlog</span>
+                                Về Backlog
                               </button>
                             )}
 
                             {/* Move to another Sprint Selector */}
                             <div
-                              className={`flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt px-2 py-1 ${
+                              className={`flex items-center rounded-xl border border-surface-border bg-surface-alt px-2.5 py-1 ${
                                 canManageSprint ? '' : 'opacity-50 cursor-not-allowed'
                               }`}
                             >
-                              <MoveRight className="h-3 w-3 text-primary" />
                               <select
                                 value={taskSprintMapping[task.id] || activeSprint.id}
                                 disabled={!canManageSprint}
@@ -1000,15 +987,15 @@ export function WorkspaceBacklogTab({
                                 }`}
                               >
                                 <option value={activeSprint.id} className="bg-surface text-blue-500">
-                                  ✓ {activeSprint.name}
+                                  {activeSprint.name}
                                 </option>
                                 {plannedSprints.map((ps) => (
                                   <option key={ps.id} value={ps.id} className="bg-surface text-text-primary">
-                                    ➔ {ps.name}
+                                    {ps.name}
                                   </option>
                                 ))}
                                 <option value="backlog" className="bg-surface text-amber-500">
-                                  ➔ Chuyển về Backlog
+                                  Chuyển về Backlog
                                 </option>
                               </select>
                             </div>
@@ -1237,20 +1224,18 @@ export function WorkspaceBacklogTab({
                               <button
                                 type="button"
                                 onClick={() => handleAssignTaskToSprint(task.id, 'backlog')}
-                                className="flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30 px-2 py-1 text-[11px] font-medium text-text-muted transition active:scale-95 cursor-pointer"
+                                className="rounded-xl border border-surface-border bg-surface-alt hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30 px-2.5 py-1 text-[11px] font-medium text-text-muted transition active:scale-95 cursor-pointer"
                                 title="Hoàn công việc về Backlog"
                               >
-                                <RotateCcw className="h-3 w-3" />
-                                <span>Về Backlog</span>
+                                Về Backlog
                               </button>
                             )}
 
                             <div
-                              className={`flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt px-2 py-0.5 ${
+                              className={`flex items-center rounded-xl border border-surface-border bg-surface-alt px-2 py-0.5 ${
                                 canManageSprint ? '' : 'opacity-50 cursor-not-allowed'
                               }`}
                             >
-                              <MoveRight className="h-3 w-3 text-primary" />
                               <select
                                 value={taskSprintMapping[task.id] || sprint.id}
                                 disabled={!canManageSprint}
@@ -1261,11 +1246,11 @@ export function WorkspaceBacklogTab({
                               >
                                 {availableSprintOptions.map((s) => (
                                   <option key={s.id} value={s.id} className="bg-surface text-text-primary">
-                                    {s.id === sprint.id ? `✓ ${s.name}` : `➔ ${s.name}`}
+                                    {s.name}
                                   </option>
                                 ))}
                                 <option value="backlog" className="bg-surface text-amber-500">
-                                  ➔ Chuyển về Backlog
+                                  Chuyển về Backlog
                                 </option>
                               </select>
                             </div>
@@ -1414,10 +1399,9 @@ export function WorkspaceBacklogTab({
                     <button
                       type="button"
                       onClick={() => handleBulkMoveBacklog(activeSprint.id)}
-                      className="flex items-center space-x-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-3 py-1 text-xs font-bold text-white shadow-xs transition active:scale-95 cursor-pointer"
+                      className="rounded-xl bg-blue-600 hover:bg-blue-500 px-3 py-1 text-xs font-bold text-white shadow-xs transition active:scale-95 cursor-pointer"
                     >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      <span>Đưa vào {activeSprint.name}</span>
+                      Đưa vào {activeSprint.name}
                     </button>
                   )}
 
@@ -1428,7 +1412,7 @@ export function WorkspaceBacklogTab({
                       onClick={() => handleBulkMoveBacklog(ps.id)}
                       className="rounded-xl border border-surface-border bg-surface px-3 py-1 text-xs font-bold text-text-primary hover:bg-surface-alt transition active:scale-95 cursor-pointer"
                     >
-                      ➔ {ps.name}
+                      {ps.name}
                     </button>
                   ))}
 
@@ -1500,21 +1484,19 @@ export function WorkspaceBacklogTab({
                             <button
                               type="button"
                               onClick={() => handleAssignTaskToSprint(task.id, activeSprint.id)}
-                              className="flex items-center space-x-1 rounded-xl bg-blue-500/10 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-blue-500/30 px-2.5 py-1 text-[11px] font-bold transition active:scale-95 cursor-pointer"
+                              className="rounded-xl bg-blue-500/10 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-blue-500/30 px-2.5 py-1 text-[11px] font-bold transition active:scale-95 cursor-pointer"
                               title={`Đưa ngay vào ${activeSprint.name}`}
                             >
-                              <PlayCircle className="h-3 w-3" />
-                              <span>Đưa vào {activeSprint.name}</span>
+                              Đưa vào {activeSprint.name}
                             </button>
                           )}
 
                           {/* Quick Assign to Other Sprint Selector */}
                           <div
-                            className={`flex items-center space-x-1 rounded-xl border border-primary/30 bg-primary/10 px-2 py-1 ${
+                            className={`flex items-center rounded-xl border border-primary/30 bg-primary/10 px-2 py-1 ${
                               canManageSprint ? '' : 'opacity-50 cursor-not-allowed'
                             }`}
                           >
-                            <MoveRight className="h-3 w-3 text-primary" />
                             <select
                               value={taskSprintMapping[task.id] || 'backlog'}
                               disabled={!canManageSprint}
@@ -1528,7 +1510,7 @@ export function WorkspaceBacklogTab({
                               </option>
                               {availableSprintOptions.map((s) => (
                                 <option key={s.id} value={s.id} className="bg-surface text-text-primary">
-                                  ➔ {s.name}
+                                  {s.name}
                                 </option>
                               ))}
                             </select>
@@ -1972,7 +1954,7 @@ export function WorkspaceBacklogTab({
                             : 'border-surface-border bg-surface-alt text-text-muted hover:bg-surface hover:text-text-primary'
                         }`}
                       >
-                        {p === 'URGENT' ? '🔥 Gấp' : p === 'HIGH' ? '⚡ Cao' : p === 'MEDIUM' ? '⚖️ Vừa' : '☕ Thấp'}
+                        {p === 'URGENT' ? 'Khẩn cấp' : p === 'HIGH' ? 'Cao' : p === 'MEDIUM' ? 'Trung bình' : 'Thấp'}
                       </button>
                     ))}
                   </div>

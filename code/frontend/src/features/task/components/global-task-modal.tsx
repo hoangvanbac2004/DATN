@@ -397,13 +397,13 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
                 className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-bold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
               >
                 <option value="backlog" className="bg-surface text-amber-500 font-semibold">
-                  📦 Chờ trong Backlog (Chưa đưa vào Sprint)
+                  Chờ trong Backlog (Chưa đưa vào Sprint)
                 </option>
                 {projectSprints
                   .filter((s) => s.status !== 'COMPLETED')
                   .map((s) => (
                     <option key={s.id} value={s.id} className="bg-surface text-text-primary">
-                      {s.status === 'ACTIVE' ? `⚡ ${s.name} (Đang chạy)` : `➔ ${s.name} (Dự kiến)`}
+                      {s.status === 'ACTIVE' ? `${s.name} (Đang chạy)` : `${s.name} (Dự kiến)`}
                     </option>
                   ))}
               </select>
