@@ -536,6 +536,12 @@ export function WorkspaceBacklogTab({
     }
     setIsSendingRequest(true);
     try {
+      const targetSprintObj = sprints.find((s) => s.id === targetSprintForCreation);
+      const sprintDisplayName =
+        targetSprintForCreation === 'backlog'
+          ? 'Backlog'
+          : targetSprintObj?.name || 'Sprint';
+
       const newRequest: TaskRequestItem = {
         id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         title: requestTitle.trim(),
@@ -546,6 +552,8 @@ export function WorkspaceBacklogTab({
         requesterEmail: user?.email || '',
         workspaceId,
         projectId,
+        sprintId: targetSprintForCreation || 'backlog',
+        sprintName: sprintDisplayName,
         status: 'PENDING',
         createdAt: new Date().toLocaleString('vi-VN'),
       };
@@ -1942,6 +1950,26 @@ export function WorkspaceBacklogTab({
                     placeholder="Chi tiết yêu cầu, phạm vi và mục tiêu..."
                     className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none resize-none"
                   />
+                </div>
+
+                {/* Sprint Selector for Staff Request */}
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary flex items-center space-x-1.5">
+                    <Layers className="h-3.5 w-3.5 text-primary" />
+                    <span>Đề xuất vào Chu kỳ Sprint</span>
+                  </label>
+                  <select
+                    value={targetSprintForCreation}
+                    onChange={(e) => setTargetSprintForCreation(e.target.value)}
+                    className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-semibold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
+                  >
+                    <option value="backlog">Chờ trong Backlog (Chưa đưa vào Sprint)</option>
+                    {availableSprintOptions.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} {s.status === 'ACTIVE' ? '(Đang diễn ra)' : '(Kế hoạch)'}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-1.5">

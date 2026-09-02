@@ -26,11 +26,18 @@ export interface TaskRequestItem {
   requesterEmail: string;
   workspaceId?: string;
   projectId?: string;
+  sprintId?: string;
+  sprintName?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   reviewedBy?: string;
   reviewedAt?: string;
 }
+
+import {
+  getStoredTaskSprintMapping,
+  saveStoredTaskSprintMapping,
+} from '@/features/project/services/sprint-service';
 
 export const TASK_REQUESTS_KEY = 'taskflow_task_requests_store';
 
@@ -115,12 +122,22 @@ export function PendingTaskRequestsSection({ projectId, workspaceId }: PendingTa
   const handleApproveRequest = async (req: TaskRequestItem) => {
     try {
       if (projectId || req.projectId) {
-        await createTaskMutation.mutateAsync({
+        const newTask = await createTaskMutation.mutateAsync({
           title: req.title,
           description: req.description,
           priority: req.priority,
           status: 'TODO',
         });
+
+        // Gán vào Sprint đã được đề xuất nếu có
+        if (newTask?.id && req.sprintId && req.sprintId !== 'backlog') {
+          const targetProjId = req.projectId || projectId || '';
+          if (targetProjId) {
+            const mapping = getStoredTaskSprintMapping(targetProjId);
+            mapping[newTask.id] = req.sprintId;
+            saveStoredTaskSprintMapping(mapping, targetProjId);
+          }
+        }
       }
 
       const all = getStoredTaskRequests();
@@ -272,6 +289,13 @@ export function PendingTaskRequestsSection({ projectId, workspaceId }: PendingTa
                       <span>
                         Người gửi: <strong className="text-text-primary">{req.requesterName}</strong>{' '}
                         ({req.requesterEmail})
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center space-x-1.5 text-[10px]">
+                      <span className="text-text-muted font-medium">Sprint đề xuất:</span>
+                      <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 font-bold text-primary">
+                        {req.sprintName || (req.sprintId && req.sprintId !== 'backlog' ? req.sprintId : 'Backlog')}
                       </span>
                     </div>
                   </div>

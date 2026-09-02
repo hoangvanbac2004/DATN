@@ -146,6 +146,12 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
     // NẾU LÀ STAFF: Không được tạo trực tiếp vào DB/bảng Kanban, mà phải gửi yêu cầu phê duyệt
     if (isStaff) {
       try {
+        const targetSprintObj = projectSprints.find((s) => s.id === selectedSprintId);
+        const sprintDisplayName =
+          selectedSprintId === 'backlog'
+            ? 'Backlog'
+            : targetSprintObj?.name || 'Sprint';
+
         const newRequest = {
           id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           title: data.title.trim(),
@@ -156,6 +162,8 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
           requesterEmail: currentUser?.email || '',
           workspaceId,
           projectId: effectiveProjectId || undefined,
+          sprintId: selectedSprintId || 'backlog',
+          sprintName: sprintDisplayName,
           status: 'PENDING' as const,
           createdAt: new Date().toLocaleString('vi-VN'),
         };
