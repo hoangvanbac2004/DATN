@@ -35,7 +35,7 @@ import { CreateWhiteboardModal, WhiteboardItem } from '@/features/project/compon
 import { RealtimeListener } from '@/features/realtime/components/realtime-listener';
 import type { TaskDto } from '@/features/task/types';
 
-type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'wiki' | 'whiteboard' | 'forms';
+type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'wiki' | 'whiteboard';
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
   const resolvedParams = use(params);
@@ -224,19 +224,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             <PenTool className="h-4 w-4" />
             <span>Bảng Vẽ</span>
           </button>
-
-          <button
-            onClick={() => setActiveTab('forms')}
-            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 transition ${
-              activeTab === 'forms'
-                ? 'bg-primary text-white shadow-xs'
-                : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
-            }`}
-          >
-            <FileSpreadsheet className="h-4 w-4" />
-            <span>Biểu mẫu</span>
-          </button>
-
         </div>
 
         {/* Tab Content 1: Project Summary Overview */}
@@ -594,13 +581,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
               ))}
             </div>
           </div>
-        )}
-
-        {/* Tab Content 7: Forms */}
-        {activeTab === 'forms' && (
-          <WorkspaceFormsTab
-            workspaceId={project.workspaceId || ''}
-          />
         )}
 
         {/* Task Detail Modal */}
