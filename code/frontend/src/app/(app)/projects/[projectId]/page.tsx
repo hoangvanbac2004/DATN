@@ -18,8 +18,11 @@ import {
   Plus,
   Bell,
   CheckCircle2,
-  X
+  X,
+  Users,
+  AlertCircle,
 } from 'lucide-react';
+import { useAuthStore } from '@/store/auth-store';
 import { useProjectDetails, useProjectStats } from '@/features/project/hooks/use-project';
 import { useProjectTasks } from '@/features/task/hooks/use-task';
 import { ProjectHeader } from '@/features/project/components/project-header';
@@ -32,9 +35,11 @@ import { GlobalTaskModal } from '@/features/task/components/global-task-modal';
 import { CreateWikiDocModal, WikiDocItem } from '@/features/project/components/create-wiki-doc-modal';
 import { CreateWhiteboardModal, WhiteboardItem } from '@/features/project/components/create-whiteboard-modal';
 import { RealtimeListener } from '@/features/realtime/components/realtime-listener';
+import { ProjectMembersTab } from '@/features/project/components/tabs/ProjectMembersTab';
+import { isUserInProject } from '@/features/project/services/project-member-service';
 import type { TaskDto } from '@/features/task/types';
 
-type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'wiki' | 'whiteboard';
+type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'members' | 'wiki' | 'whiteboard';
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
   const resolvedParams = use(params);
@@ -52,6 +57,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
   const [isCreateWhiteboardOpen, setIsCreateWhiteboardOpen] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
   const [selectedBoardSprintId, setSelectedBoardSprintId] = useState<string | undefined>(undefined);
+
+  const currentUser = useAuthStore((state) => state.user);
+  const isAdmin = currentUser?.roles?.includes('ROLE_ADMIN') || currentUser?.email === 'admin@gmail.com';
+  const isManager = !isAdmin && (currentUser?.roles?.includes('ROLE_MANAGER') || currentUser?.email === 'manager@gmail.com');
+  const isStaff = !isAdmin && !isManager;
+  const isMemberOfThisProject = isUserInProject(projectId, currentUser);
 
   // Detailed Modal View States
   const [selectedWikiDetail, setSelectedWikiDetail] = useState<WikiDocItem | null>(null);
@@ -145,6 +156,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           </div>
         )}
 
+        {/* Staff Project Membership Warning Banner */}
+        {isStaff && !isMemberOfThisProject && (
+          <div className="flex items-start space-x-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-semibold text-amber-600 dark:text-amber-400 shadow-xs">
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Bạn không thuộc danh sách nhân sự của Dự án này.</p>
+              <p className="text-[11px] opacity-90 font-normal mt-0.5">
+                Theo phân quyền, bạn chỉ được phép nhận công việc và thao tác trong các dự án mà bạn được phân công.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Project Header Header */}
         <ProjectHeader 
           project={project}
@@ -198,7 +222,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             }`}
           >
             <GitCommitHorizontal className="h-4 w-4" />
-            <span>Biểu đồ Tiến độ (Gantt)</span>
+            <span>Biểu đồ Gantt</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 transition ${
+              activeTab === 'members'
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            <span>Thành viên Dự án</span>
           </button>
 
           <button
@@ -481,6 +517,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             isLoading={isTasksLoading}
             onOpenCreateTask={() => setIsCreateTaskOpen(true)}
             onSelectTask={(task) => setSelectedTask(task)}
+          />
+        )}
+
+        {/* Tab Content 5: Project Members Directory */}
+        {activeTab === 'members' && (
+          <ProjectMembersTab
+            projectId={projectId}
+            workspaceId={project?.workspaceId}
+            projectName={project?.name}
           />
         )}
 

@@ -8,6 +8,9 @@ import { useProjects } from '@/features/project/hooks/use-project';
 import { useWorkspaceStore } from '@/store/workspace-store';
 import type { InviteMemberPayload, WorkspaceRole } from '../types';
 
+import { addMemberToProject } from '@/features/project/services/project-member-service';
+import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
+
 interface InviteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,9 +20,10 @@ interface InviteDialogProps {
   ) => void;
   isLoading?: boolean;
   workspaceId?: string;
+  defaultProjectId?: string;
 }
 
-export function InviteDialog({ isOpen, onClose, onSubmit, isLoading, workspaceId }: InviteDialogProps) {
+export function InviteDialog({ isOpen, onClose, onSubmit, isLoading, workspaceId, defaultProjectId }: InviteDialogProps) {
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation('team');
   const { t: tCommon } = useTranslation('common');
@@ -27,10 +31,11 @@ export function InviteDialog({ isOpen, onClose, onSubmit, isLoading, workspaceId
   const targetWorkspaceId = workspaceId || activeWorkspace?.id || '';
 
   const { data: projects = [] } = useProjects(targetWorkspaceId || null);
+  const { data: workspaceMembers = [] } = useWorkspaceMembers(targetWorkspaceId || null);
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('MEMBER');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultProjectId || '');
 
   // Feedback State: 'IDLE' | 'SUCCESS' | 'ERROR'
   const [status, setStatus] = useState<'IDLE' | 'SUCCESS' | 'ERROR'>('IDLE');
@@ -41,6 +46,12 @@ export function InviteDialog({ isOpen, onClose, onSubmit, isLoading, workspaceId
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (defaultProjectId) {
+      setSelectedProjectId(defaultProjectId);
+    }
+  }, [defaultProjectId]);
 
   if (!isOpen || !mounted) return null;
 
@@ -65,6 +76,15 @@ export function InviteDialog({ isOpen, onClose, onSubmit, isLoading, workspaceId
       { email: targetEmail, role },
       {
         onSuccess: () => {
+          if (selectedProjectId) {
+            addMemberToProject(selectedProjectId, targetEmail);
+            const existing = workspaceMembers.find(
+              (m) => m.email?.toLowerCase() === targetEmail.toLowerCase()
+            );
+            if (existing?.userId) {
+              addMemberToProject(selectedProjectId, existing.userId);
+            }
+          }
           setStatus('SUCCESS');
           setEmail('');
         },

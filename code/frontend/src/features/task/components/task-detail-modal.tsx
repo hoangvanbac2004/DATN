@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Calendar, 
   Trash2, 
@@ -28,6 +28,7 @@ import { useAssignTask, useDeleteTask, useUpdateTaskStatus } from '../hooks/use-
 import { AttachmentList } from '@/features/attachment/components/attachment-list';
 import { useWorkspaceStore } from '@/store/workspace-store';
 import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
+import { filterAssigneesForProject } from '@/features/project/services/project-member-service';
 import { useAuthStore } from '@/store/auth-store';
 import { ConfirmStatusChangeModal } from './confirm-status-change-modal';
 
@@ -51,6 +52,10 @@ export function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskDetailMod
   const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
   const { data: members = [] } = useWorkspaceMembers(activeWorkspaceId);
   const currentUser = useAuthStore((state) => state.user);
+
+  const eligibleMembers = useMemo(() => {
+    return filterAssigneesForProject(members, task?.projectId);
+  }, [members, task?.projectId]);
 
   // Local state for deferred saving & editing
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus>('TODO');
@@ -355,7 +360,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onEdit }: TaskDetailMod
                     }`}
                   >
                     <option value="" className="bg-surface text-text-muted">-- Chưa phân công --</option>
-                    {members.map((m) => (
+                    {eligibleMembers.map((m: any) => (
                       <option key={m.userId} value={m.userId} className="bg-surface text-text-primary">
                         {m.fullName || m.email}
                       </option>

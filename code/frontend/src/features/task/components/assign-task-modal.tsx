@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { X, UserCheck, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
 import { useWorkspaceTasks, useAssignTask } from '../hooks/use-task';
+import { filterAssigneesForProject } from '@/features/project/services/project-member-service';
 
 interface AssignTaskModalProps {
   isOpen: boolean;
@@ -23,6 +24,11 @@ export function AssignTaskModal({ isOpen, onClose, workspaceId }: AssignTaskModa
 
   const [selectedTaskId, setSelectedTaskId] = useState<string>('');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string>('');
+
+  const selectedTaskObj = tasks.find((t) => t.id === selectedTaskId);
+  const eligibleMembers = React.useMemo(() => {
+    return filterAssigneesForProject(members, selectedTaskObj?.projectId);
+  }, [members, selectedTaskObj?.projectId]);
 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -159,12 +165,12 @@ export function AssignTaskModal({ isOpen, onClose, workspaceId }: AssignTaskModa
               {isLoadingMembers ? (
                 <option disabled>Đang tải thành viên...</option>
               ) : (
-                members.map((m) => {
+                eligibleMembers.map((m) => {
                   const name = m.fullName || m.email || 'Thành viên';
                   const roleBadge = m.role ? `[${m.role}]` : '';
                   return (
                     <option key={m.userId} value={m.userId} className="bg-surface text-text-primary">
-                      👤 {name} {roleBadge} ({m.email || 'No email'})
+                      {name} {roleBadge} ({m.email || 'No email'})
                     </option>
                   );
                 })

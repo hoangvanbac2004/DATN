@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -19,6 +19,7 @@ import {
   getStoredTaskSprintMapping,
   saveStoredTaskSprintMapping,
 } from '@/features/project/services/sprint-service';
+import { filterAssigneesForProject } from '@/features/project/services/project-member-service';
 
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -99,6 +100,10 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
       setSelectedSprintId('backlog');
     }
   }, [effectiveProjectId]);
+
+  const eligibleAssignees = useMemo(() => {
+    return filterAssigneesForProject(members, effectiveProjectId);
+  }, [members, effectiveProjectId]);
 
   const {
     register,
@@ -329,15 +334,22 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
 
           {/* Assignee Dropdown Picker */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-text-secondary">
-              {tTask('fields.assignee', { defaultValue: 'Người thực hiện' })}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-text-secondary">
+                {tTask('fields.assignee', { defaultValue: 'Người thực hiện' })}
+              </label>
+              {effectiveProjectId && (
+                <span className="text-[10px] text-text-muted">
+                  (Chỉ thành viên của dự án này)
+                </span>
+              )}
+            </div>
             <select
               {...register('assigneeId')}
               className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs text-text-primary focus:border-primary focus:outline-none cursor-pointer"
             >
               <option value="" className="bg-surface text-text-muted">-- Chưa phân công --</option>
-              {members.map((m) => (
+              {eligibleAssignees.map((m: any) => (
                 <option key={m.userId} value={m.userId} className="bg-surface text-text-primary">
                   {m.fullName || m.email}
                 </option>
