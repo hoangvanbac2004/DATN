@@ -70,7 +70,7 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
   const { data: rawProjects = [] } = useProjects(workspaceId || null);
   const projects = useMemo(() => {
     return filterProjectsForUser(rawProjects, currentUser);
-  }, [rawProjects, currentUser]);
+  }, [rawProjects, currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
     if (defaultProjectId) {
@@ -79,13 +79,6 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
   }, [defaultProjectId]);
 
   const effectiveProjectId = selectedProjectId || defaultProjectId || (projects.length > 0 ? projects[0].id : '');
-
-  // Auto-select project if projects are available and none is selected yet
-  useEffect(() => {
-    if (projects.length > 0 && !selectedProjectId && !defaultProjectId) {
-      setSelectedProjectId(projects[0].id);
-    }
-  }, [projects, selectedProjectId, defaultProjectId]);
 
   const userProjectRole = getUserProjectRole(effectiveProjectId, currentUser);
   const isAdmin = userProjectRole === 'ADMIN';
@@ -97,14 +90,17 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
   const [projectSprints, setProjectSprints] = useState<SprintItem[]>([]);
 
   useEffect(() => {
-    const targetProjId = effectiveProjectId || (projects.length > 0 ? projects[0].id : '');
+    if (!isOpen) return;
+    const targetProjId = effectiveProjectId;
     const sprints = getStoredSprints(targetProjId || undefined);
     setProjectSprints(sprints);
     const active = sprints.find((s) => s.status === 'ACTIVE');
-    if (active && (!selectedSprintId || selectedSprintId === 'backlog')) {
+    if (active) {
       setSelectedSprintId(active.id);
+    } else {
+      setSelectedSprintId('backlog');
     }
-  }, [effectiveProjectId, projects]);
+  }, [effectiveProjectId, isOpen]);
 
   const eligibleAssignees = useMemo(() => {
     return filterAssigneesForProject(members, effectiveProjectId);
@@ -304,7 +300,7 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
             <div className="space-y-1">
               <label className="text-xs font-semibold text-text-secondary">Chọn Dự án *</label>
               <select
-                value={selectedProjectId || (projects.length > 0 ? projects[0].id : '')}
+                value={effectiveProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
                 className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-bold text-primary focus:border-primary focus:outline-none cursor-pointer"
               >
