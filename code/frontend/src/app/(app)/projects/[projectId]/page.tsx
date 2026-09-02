@@ -51,6 +51,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
   const [isCreateWikiOpen, setIsCreateWikiOpen] = useState(false);
   const [isCreateWhiteboardOpen, setIsCreateWhiteboardOpen] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const [selectedBoardSprintId, setSelectedBoardSprintId] = useState<string | undefined>(undefined);
 
   // Detailed Modal View States
   const [selectedWikiDetail, setSelectedWikiDetail] = useState<WikiDocItem | null>(null);
@@ -453,6 +454,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             workspaceId={project?.workspaceId}
             onOpenCreateTask={() => setIsCreateTaskOpen(true)}
             onSelectTask={(task) => setSelectedTask(task)}
+            onNavigateToBoard={(sprintId) => {
+              if (sprintId) setSelectedBoardSprintId(sprintId);
+              setActiveTab('board');
+            }}
           />
         )}
 
@@ -461,8 +466,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
           <WorkspaceBoardTab
             tasks={tasks}
             isLoading={isTasksLoading}
+            projectId={projectId}
+            initialSprintFilter={selectedBoardSprintId}
             onOpenCreateTask={() => setIsCreateTaskOpen(true)}
             onSelectTask={(task) => setSelectedTask(task)}
+            onNavigateToBacklog={() => setActiveTab('backlog')}
           />
         )}
 

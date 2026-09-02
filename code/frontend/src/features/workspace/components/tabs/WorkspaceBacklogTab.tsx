@@ -33,6 +33,7 @@ import {
   Square,
   Sparkles,
   Send,
+  LayoutGrid,
 } from 'lucide-react';
 import type { TaskDto, TaskPriority, TaskStatus } from '@/features/task/types';
 import { useUpdateTaskStatus, useCreateTask } from '@/features/task/hooks/use-task';
@@ -60,6 +61,7 @@ interface WorkspaceBacklogTabProps {
   workspaceId?: string;
   onOpenCreateTask: () => void;
   onSelectTask?: (task: TaskDto) => void;
+  onNavigateToBoard?: (sprintId?: string) => void;
 }
 
 export function WorkspaceBacklogTab({
@@ -69,6 +71,7 @@ export function WorkspaceBacklogTab({
   workspaceId,
   onOpenCreateTask,
   onSelectTask,
+  onNavigateToBoard,
 }: WorkspaceBacklogTabProps) {
   const { t: tTask } = useTranslation('task');
   const user = useAuthStore((state) => state.user);
@@ -863,6 +866,18 @@ export function WorkspaceBacklogTab({
                         </button>
                       </div>
                     )}
+
+                    {onNavigateToBoard && (
+                      <button
+                        type="button"
+                        onClick={() => onNavigateToBoard(activeSprint.id)}
+                        className="flex items-center space-x-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 hover:bg-blue-600 hover:text-white px-3 py-1.5 text-xs font-bold text-blue-500 transition active:scale-95 shadow-xs cursor-pointer"
+                        title="Xem và kéo thả công việc của Sprint này trên Bảng Kanban"
+                      >
+                        <LayoutGrid className="h-3.5 w-3.5" />
+                        <span>Xem Bảng Kanban</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1179,6 +1194,18 @@ export function WorkspaceBacklogTab({
                           <span>Bắt đầu Sprint</span>
                         </button>
                       </>
+                    )}
+
+                    {onNavigateToBoard && (
+                      <button
+                        type="button"
+                        onClick={() => onNavigateToBoard(sprint.id)}
+                        className="flex items-center space-x-1 rounded-xl border border-surface-border bg-surface hover:bg-surface-alt px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary transition cursor-pointer"
+                        title="Xem các công việc của Sprint này trên Bảng Kanban"
+                      >
+                        <LayoutGrid className="h-3.5 w-3.5" />
+                        <span>Xem bảng</span>
+                      </button>
                     )}
                   </div>
                 </div>

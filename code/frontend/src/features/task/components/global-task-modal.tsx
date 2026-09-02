@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, Loader2, X, Plus, Folder } from 'lucide-react';
+import { CheckSquare, Loader2, X, Plus, Folder, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkspaceStore } from '@/store/workspace-store';
@@ -13,6 +13,12 @@ import { useWorkspaces, useWorkspaceMembers } from '@/features/workspace/hooks/u
 import { useProjects } from '@/features/project/hooks/use-project';
 import { useCreateWorkspaceTask, useCreateTask } from '../hooks/use-task';
 import type { TaskPriority, TaskStatus } from '../types';
+import {
+  SprintItem,
+  getStoredSprints,
+  getStoredTaskSprintMapping,
+  saveStoredTaskSprintMapping,
+} from '@/features/project/services/sprint-service';
 
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -73,6 +79,26 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
   const isStaff = !isAdmin && !isManager;
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedSprintId, setSelectedSprintId] = useState<string>('backlog');
+  const [projectSprints, setProjectSprints] = useState<SprintItem[]>([]);
+
+  const effectiveProjectId = selectedProjectId || defaultProjectId || '';
+
+  useEffect(() => {
+    if (effectiveProjectId) {
+      const sprints = getStoredSprints(effectiveProjectId);
+      setProjectSprints(sprints);
+      const active = sprints.find((s) => s.status === 'ACTIVE');
+      if (active) {
+        setSelectedSprintId(active.id);
+      } else {
+        setSelectedSprintId('backlog');
+      }
+    } else {
+      setProjectSprints([]);
+      setSelectedSprintId('backlog');
+    }
+  }, [effectiveProjectId]);
 
   const {
     register,
@@ -171,7 +197,15 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
       assigneeId: data.assigneeId || undefined,
     };
 
-    const onSuccess = () => { reset(); onClose(); };
+    const onSuccess = (createdTask: any) => {
+      if (createdTask?.id && effectiveProjectId && selectedSprintId && selectedSprintId !== 'backlog') {
+        const mapping = getStoredTaskSprintMapping(effectiveProjectId);
+        mapping[createdTask.id] = selectedSprintId;
+        saveStoredTaskSprintMapping(mapping, effectiveProjectId);
+      }
+      reset();
+      onClose();
+    };
     const onError = (err: any) => {
       setErrorMessage(err.response?.data?.message || tCommon('messages.genericError'));
     };
@@ -349,6 +383,35 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
               className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs text-text-primary transition focus:border-primary focus:outline-none"
             />
           </div>
+
+          {/* Sprint Assignment Picker */}
+          {effectiveProjectId && (
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-text-secondary flex items-center space-x-1.5">
+                <Layers className="h-3.5 w-3.5 text-primary" />
+                <span>Chu kỳ Sprint</span>
+              </label>
+              <select
+                value={selectedSprintId}
+                onChange={(e) => setSelectedSprintId(e.target.value)}
+                className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-bold text-text-primary focus:border-primary focus:outline-none cursor-pointer"
+              >
+                <option value="backlog" className="bg-surface text-amber-500 font-semibold">
+                  📦 Chờ trong Backlog (Chưa đưa vào Sprint)
+                </option>
+                {projectSprints
+                  .filter((s) => s.status !== 'COMPLETED')
+                  .map((s) => (
+                    <option key={s.id} value={s.id} className="bg-surface text-text-primary">
+                      {s.status === 'ACTIVE' ? `⚡ ${s.name} (Đang chạy)` : `➔ ${s.name} (Dự kiến)`}
+                    </option>
+                  ))}
+              </select>
+              <p className="text-[11px] text-text-muted">
+                Công việc sẽ xuất hiện trực tiếp trên Bảng Kanban của Sprint được chọn.
+              </p>
+            </div>
+          )}
 
           {/* Modal Action Buttons */}
           <div className="flex items-center justify-end space-x-2 pt-3 border-t border-surface-border">
