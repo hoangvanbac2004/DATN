@@ -24,15 +24,18 @@ import {
   AlertCircle,
   ArrowRight,
   RotateCcw,
-  MoreHorizontal,
   Edit3,
   Trash2,
   X,
   Check,
   Flag,
+  CheckSquare,
+  Square,
+  Sparkles,
+  Send,
 } from 'lucide-react';
 import type { TaskDto, TaskPriority, TaskStatus } from '@/features/task/types';
-import { useUpdateTaskStatus } from '@/features/task/hooks/use-task';
+import { useUpdateTaskStatus, useCreateTask } from '@/features/task/hooks/use-task';
 import { useAuthStore } from '@/store/auth-store';
 import { ConfirmStatusChangeModal } from '@/features/task/components/confirm-status-change-modal';
 import { useWorkspaceMembers } from '@/features/workspace/hooks/use-workspace';
@@ -70,6 +73,7 @@ export function WorkspaceBacklogTab({
   const { t: tTask } = useTranslation('task');
   const user = useAuthStore((state) => state.user);
   const updateStatusMutation = useUpdateTaskStatus();
+  const createTaskMutation = useCreateTask(projectId || '');
 
   const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
   const isManager = user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com';
@@ -77,7 +81,7 @@ export function WorkspaceBacklogTab({
   const canManageSprint = isAdmin || isManager;
   const canCreateTask = !!user;
 
-  // Sprints & Mapping State
+  // Sprints & Task Mapping State
   const [sprints, setSprints] = useState<SprintItem[]>([]);
   const [taskSprintMapping, setTaskSprintMapping] = useState<Record<string, string>>({});
 
@@ -91,6 +95,14 @@ export function WorkspaceBacklogTab({
     backlogPool: true,
     completedSprints: false,
   });
+
+  // Bulk Selection for Backlog tasks
+  const [selectedBacklogIds, setSelectedBacklogIds] = useState<string[]>([]);
+
+  // Inline Quick Task Creation state
+  const [inlineAddingSprintId, setInlineAddingSprintId] = useState<string | null>(null);
+  const [inlineTaskTitle, setInlineTaskTitle] = useState('');
+  const [isSubmittingInline, setIsSubmittingInline] = useState(false);
 
   // Sprint Creation / Edit Modal State
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false);
@@ -194,7 +206,6 @@ export function WorkspaceBacklogTab({
     let updatedSprints: SprintItem[];
 
     if (editingSprintId) {
-      // Edit existing
       updatedSprints = sprints.map((s) => {
         if (s.id === editingSprintId) {
           return {
@@ -209,7 +220,6 @@ export function WorkspaceBacklogTab({
       });
       toast.success('Đã cập nhật thông tin Sprint thành công!');
     } else {
-      // Create new
       const newSprintId = `sprint-${projectId || 'prj'}-${Date.now()}`;
       const newSprint: SprintItem = {
         id: newSprintId,
@@ -221,7 +231,6 @@ export function WorkspaceBacklogTab({
       };
 
       if (sprintFormStatus === 'ACTIVE') {
-        // If set to active, make other sprints planned
         updatedSprints = [
           newSprint,
           ...sprints.map((s) => (s.status === 'ACTIVE' ? { ...s, status: 'PLANNED' as const } : s)),
@@ -266,7 +275,6 @@ export function WorkspaceBacklogTab({
       if (s.id === sprintId) {
         return { ...s, status: 'ACTIVE' as const };
       }
-      // If there was an active sprint, set to planned or keep
       if (s.status === 'ACTIVE') {
         return { ...s, status: 'PLANNED' as const };
       }
@@ -299,7 +307,6 @@ export function WorkspaceBacklogTab({
       (t) => t.status !== 'DONE' && t.status !== 'COMPLETED'
     );
 
-    // Update mapping for incomplete tasks
     const updatedMapping = { ...taskSprintMapping };
     incompleteTasks.forEach((task) => {
       if (incompleteTaskDestination === 'backlog') {
@@ -328,7 +335,7 @@ export function WorkspaceBacklogTab({
     setSprintToComplete(null);
   };
 
-  // Move Task between Sprints and Backlog
+  // Move Single Task between Sprints and Backlog
   const handleAssignTaskToSprint = (taskId: string, targetSprintId: string) => {
     const updatedMapping = { ...taskSprintMapping };
     if (targetSprintId === 'backlog') {
@@ -343,7 +350,82 @@ export function WorkspaceBacklogTab({
       toast.success('Đã chuyển công việc về danh sách tồn đọng (Backlog).');
     } else {
       const targetSprint = sprints.find((s) => s.id === targetSprintId);
-      toast.success(`Đã đưa công việc vào ${targetSprint?.name || 'Sprint'}!`);
+      toast.success(`Đã đưa công việc vào ${targetSprint?.name || 'Sprint'}! ⚡`);
+    }
+  };
+
+  // Bulk Move Multiple Tasks into Sprint
+  const handleBulkMoveBacklog = (targetSprintId: string) => {
+    if (selectedBacklogIds.length === 0) return;
+    const updatedMapping = { ...taskSprintMapping };
+    selectedBacklogIds.forEach((id) => {
+      if (targetSprintId === 'backlog') {
+        delete updatedMapping[id];
+      } else {
+        updatedMapping[id] = targetSprintId;
+      }
+    });
+    setTaskSprintMapping(updatedMapping);
+    saveStoredTaskSprintMapping(updatedMapping, projectId);
+
+    const targetSprint = sprints.find((s) => s.id === targetSprintId);
+    toast.success(
+      `Đã chuyển thành công ${selectedBacklogIds.length} công việc vào ${targetSprint?.name || 'Sprint'}!`
+    );
+    setSelectedBacklogIds([]);
+  };
+
+  const handleToggleBacklogSelect = (taskId: string) => {
+    setSelectedBacklogIds((prev) =>
+      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+    );
+  };
+
+  const handleSelectAllBacklog = () => {
+    if (selectedBacklogIds.length === backlogPoolTasks.length) {
+      setSelectedBacklogIds([]);
+    } else {
+      setSelectedBacklogIds(backlogPoolTasks.map((t) => t.id));
+    }
+  };
+
+  // Fast Inline Task Creation Handler
+  const handleInlineQuickCreate = async (targetSprintId: string) => {
+    if (!inlineTaskTitle.trim()) {
+      toast.error('Vui lòng nhập tiêu đề công việc.');
+      return;
+    }
+    if (isStaff) {
+      // Staff role: trigger request modal with pre-filled title
+      setRequestTitle(inlineTaskTitle.trim());
+      setTargetSprintForCreation(targetSprintId);
+      setShowRequestModal(true);
+      setInlineAddingSprintId(null);
+      setInlineTaskTitle('');
+      return;
+    }
+
+    setIsSubmittingInline(true);
+    try {
+      const newTask = await createTaskMutation.mutateAsync({
+        title: inlineTaskTitle.trim(),
+        status: 'TODO',
+        priority: 'MEDIUM',
+      });
+
+      if (newTask?.id && targetSprintId !== 'backlog') {
+        const updatedMapping = { ...taskSprintMapping, [newTask.id]: targetSprintId };
+        setTaskSprintMapping(updatedMapping);
+        saveStoredTaskSprintMapping(updatedMapping, projectId);
+      }
+
+      setInlineTaskTitle('');
+      setInlineAddingSprintId(null);
+      toast.success('Đã thêm nhanh công việc mới thành công!');
+    } catch {
+      toast.error('Không thể tạo công việc. Vui lòng thử lại.');
+    } finally {
+      setIsSubmittingInline(false);
     }
   };
 
@@ -360,7 +442,7 @@ export function WorkspaceBacklogTab({
     return filteredTasks.filter((t) => {
       const assignedSprint = taskSprintMapping[t.id];
       if (assignedSprint === sprintId) return true;
-      // Default: if no assignment and sprint is first active sprint and task in progress
+      // Default: if no assignment and sprint is active sprint and task in progress
       if (
         !assignedSprint &&
         activeSprint &&
@@ -426,7 +508,7 @@ export function WorkspaceBacklogTab({
     );
   };
 
-  // Open Task Creation / Request
+  // Open Task Creation Modal
   const handleOpenCreateOrRequest = (targetSprint: string = 'backlog') => {
     setTargetSprintForCreation(targetSprint);
     if (isStaff) {
@@ -464,7 +546,6 @@ export function WorkspaceBacklogTab({
       const updated = [newRequest, ...getStoredTaskRequests()];
       setStoredTaskRequests(updated);
 
-      // Notify Managers / Admins
       const managers = workspaceMembers.filter(
         (m) => m.role === 'ADMIN' || m.role === 'MANAGER' || m.role === 'OWNER'
       );
@@ -568,7 +649,7 @@ export function WorkspaceBacklogTab({
           {/* Active Sprint Card */}
           <div className="rounded-2xl border border-surface-border bg-surface p-4.5 shadow-xs space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-text-muted">Giai đoạn đang chạy</span>
+              <span className="text-xs font-semibold text-text-muted">Sprint đang chạy</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
                 <PlayCircle className="h-4 w-4" />
               </div>
@@ -589,7 +670,7 @@ export function WorkspaceBacklogTab({
           {/* Sprint Progress Card */}
           <div className="rounded-2xl border border-surface-border bg-surface p-4.5 shadow-xs space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-text-muted">Tiến độ Sprint hiện tại</span>
+              <span className="text-xs font-semibold text-text-muted">Tiến độ Sprint</span>
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
                 <TrendingUp className="h-4 w-4" />
               </div>
@@ -620,9 +701,9 @@ export function WorkspaceBacklogTab({
               <span className="text-xl font-extrabold text-text-primary font-heading">
                 {backlogPoolTasks.length}
               </span>
-              <span className="text-xs font-bold text-amber-500">chờ lập kế hoạch</span>
+              <span className="text-xs font-bold text-amber-500">cần đưa vào Sprint</span>
             </div>
-            <p className="text-[11px] text-text-muted">Sẵn sàng phân bổ vào chu kỳ Sprint</p>
+            <p className="text-[11px] text-text-muted">Sẵn sàng lập kế hoạch cho chu kỳ tiếp</p>
           </div>
 
           {/* Total Tasks Card */}
@@ -639,7 +720,7 @@ export function WorkspaceBacklogTab({
               </span>
               <span className="text-xs text-text-muted">trong dự án</span>
             </div>
-            <p className="text-[11px] text-text-muted">Theo dõi theo mô hình Agile Scrum</p>
+            <p className="text-[11px] text-text-muted">Mô hình Agile Scrum & Kanban</p>
           </div>
         </div>
 
@@ -739,7 +820,7 @@ export function WorkspaceBacklogTab({
                             {activeSprint.name}
                           </h3>
                           <span className="rounded-full bg-blue-500/10 border border-blue-500/30 px-2.5 py-0.5 text-[10px] font-bold text-blue-500">
-                            Đang diễn ra
+                            Đang chạy
                           </span>
                         </div>
                         <p className="text-[11px] text-text-muted mt-0.5">
@@ -824,7 +905,7 @@ export function WorkspaceBacklogTab({
                       <Inbox className="h-8 w-8 text-text-muted mx-auto opacity-50" />
                       <p className="text-xs font-medium text-text-muted">Sprint này chưa có công việc nào.</p>
                       <p className="text-[11px] text-text-muted">
-                        Chọn công việc từ danh sách Backlog bên dưới hoặc bấm thêm công việc trực tiếp vào Sprint.
+                        Bấm nút bên dưới để thêm công việc nhanh, hoặc đưa công việc từ Backlog vào.
                       </p>
                     </div>
                   ) : (
@@ -875,7 +956,20 @@ export function WorkspaceBacklogTab({
                             className="flex items-center space-x-2.5 shrink-0"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {/* Move Sprint Selector */}
+                            {/* 1-Click Quick Move to Backlog */}
+                            {canManageSprint && (
+                              <button
+                                type="button"
+                                onClick={() => handleAssignTaskToSprint(task.id, 'backlog')}
+                                className="flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30 px-2 py-1 text-[11px] font-medium text-text-muted transition active:scale-95 cursor-pointer"
+                                title="Hoàn công việc về Backlog"
+                              >
+                                <RotateCcw className="h-3 w-3" />
+                                <span>Về Backlog</span>
+                              </button>
+                            )}
+
+                            {/* Move to another Sprint Selector */}
                             <div
                               className={`flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt px-2 py-1 ${
                                 canManageSprint ? '' : 'opacity-50 cursor-not-allowed'
@@ -943,16 +1037,55 @@ export function WorkspaceBacklogTab({
                     })
                   )}
 
-                  {/* Inline Add Task Button */}
+                  {/* Fast Inline Task Creation Box */}
                   <div className="p-3 bg-surface-alt/20 border-t border-surface-border/50">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenCreateOrRequest(activeSprint.id)}
-                      className="flex items-center space-x-1.5 text-xs font-semibold text-text-muted hover:text-primary transition cursor-pointer px-2 py-1"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>{isStaff ? 'Gửi yêu cầu công việc vào Sprint này' : 'Tạo công việc trong Sprint này'}</span>
-                    </button>
+                    {inlineAddingSprintId === activeSprint.id ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={inlineTaskTitle}
+                          onChange={(e) => setInlineTaskTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleInlineQuickCreate(activeSprint.id);
+                            if (e.key === 'Escape') setInlineAddingSprintId(null);
+                          }}
+                          placeholder={`Thêm nhanh công việc vào ${activeSprint.name} (nhấn Enter)...`}
+                          className="flex-1 rounded-xl border border-primary bg-surface px-3.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:outline-none"
+                          autoFocus
+                          disabled={isSubmittingInline}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleInlineQuickCreate(activeSprint.id)}
+                          disabled={isSubmittingInline || !inlineTaskTitle.trim()}
+                          className="rounded-xl bg-primary hover:bg-primary-hover px-3 py-1.5 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isSubmittingInline ? 'Đang thêm...' : 'Thêm'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInlineAddingSprintId(null);
+                            setInlineTaskTitle('');
+                          }}
+                          className="rounded-xl border border-surface-border bg-surface px-3 py-1.5 text-xs text-text-secondary hover:bg-surface-alt transition cursor-pointer"
+                        >
+                          Hủy
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInlineAddingSprintId(activeSprint.id);
+                          setInlineTaskTitle('');
+                        }}
+                        className="flex items-center space-x-1.5 text-xs font-semibold text-text-muted hover:text-primary transition cursor-pointer px-2 py-1"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>{isStaff ? `Gửi yêu cầu công việc vào ${activeSprint.name}` : `+ Thêm công việc vào ${activeSprint.name}`}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -1072,6 +1205,19 @@ export function WorkspaceBacklogTab({
                             className="flex items-center space-x-2"
                             onClick={(e) => e.stopPropagation()}
                           >
+                            {/* 1-Click Quick Move to Backlog */}
+                            {canManageSprint && (
+                              <button
+                                type="button"
+                                onClick={() => handleAssignTaskToSprint(task.id, 'backlog')}
+                                className="flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30 px-2 py-1 text-[11px] font-medium text-text-muted transition active:scale-95 cursor-pointer"
+                                title="Hoàn công việc về Backlog"
+                              >
+                                <RotateCcw className="h-3 w-3" />
+                                <span>Về Backlog</span>
+                              </button>
+                            )}
+
                             <div
                               className={`flex items-center space-x-1 rounded-xl border border-surface-border bg-surface-alt px-2 py-0.5 ${
                                 canManageSprint ? '' : 'opacity-50 cursor-not-allowed'
@@ -1102,16 +1248,55 @@ export function WorkspaceBacklogTab({
                       ))
                     )}
 
-                    {/* Inline Add Task to this planned sprint */}
+                    {/* Fast Inline Task Creation Box */}
                     <div className="p-3 bg-surface-alt/20 border-t border-surface-border/50">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenCreateOrRequest(sprint.id)}
-                        className="flex items-center space-x-1.5 text-xs font-semibold text-text-muted hover:text-primary transition cursor-pointer px-2 py-1"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        <span>Thêm công việc vào kế hoạch Sprint này</span>
-                      </button>
+                      {inlineAddingSprintId === sprint.id ? (
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={inlineTaskTitle}
+                            onChange={(e) => setInlineTaskTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleInlineQuickCreate(sprint.id);
+                              if (e.key === 'Escape') setInlineAddingSprintId(null);
+                            }}
+                            placeholder={`Thêm nhanh công việc vào ${sprint.name} (nhấn Enter)...`}
+                            className="flex-1 rounded-xl border border-primary bg-surface px-3.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:outline-none"
+                            autoFocus
+                            disabled={isSubmittingInline}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleInlineQuickCreate(sprint.id)}
+                            disabled={isSubmittingInline || !inlineTaskTitle.trim()}
+                            className="rounded-xl bg-primary hover:bg-primary-hover px-3 py-1.5 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 cursor-pointer"
+                          >
+                            {isSubmittingInline ? 'Đang thêm...' : 'Thêm'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setInlineAddingSprintId(null);
+                              setInlineTaskTitle('');
+                            }}
+                            className="rounded-xl border border-surface-border bg-surface px-3 py-1.5 text-xs text-text-secondary hover:bg-surface-alt transition cursor-pointer"
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInlineAddingSprintId(sprint.id);
+                            setInlineTaskTitle('');
+                          }}
+                          className="flex items-center space-x-1.5 text-xs font-semibold text-text-muted hover:text-primary transition cursor-pointer px-2 py-1"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          <span>+ Thêm nhanh công việc vào kế hoạch {sprint.name}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1121,6 +1306,7 @@ export function WorkspaceBacklogTab({
 
           {/* ================= BACKLOG POOL (TỒN ĐỌNG) ================= */}
           <div className="rounded-2xl border-2 border-amber-500/20 bg-surface overflow-hidden shadow-xs">
+            {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 bg-amber-500/5 px-5 py-4 border-b border-surface-border">
               <div className="flex items-center space-x-3">
                 <button
@@ -1149,23 +1335,86 @@ export function WorkspaceBacklogTab({
                       </span>
                     </div>
                     <p className="text-[11px] text-text-muted mt-0.5">
-                      Các hạng mục công việc đang chờ phân bổ vào chu kỳ Sprint
+                      Các hạng mục công việc chờ phân bổ vào chu kỳ Sprint
                     </p>
                   </div>
                 </div>
               </div>
 
-              {canCreateTask && (
-                <button
-                  type="button"
-                  onClick={() => handleOpenCreateOrRequest('backlog')}
-                  className="flex items-center space-x-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 text-xs font-bold text-amber-500 hover:bg-amber-500 hover:text-white transition active:scale-95 shadow-xs cursor-pointer"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>{isStaff ? 'Yêu cầu thêm vào Backlog' : 'Thêm vào Backlog'}</span>
-                </button>
-              )}
+              <div className="flex items-center space-x-2">
+                {backlogPoolTasks.length > 0 && canManageSprint && (
+                  <button
+                    type="button"
+                    onClick={handleSelectAllBacklog}
+                    className="flex items-center space-x-1 rounded-xl border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-alt transition cursor-pointer"
+                  >
+                    {selectedBacklogIds.length === backlogPoolTasks.length && backlogPoolTasks.length > 0 ? (
+                      <>
+                        <CheckSquare className="h-3.5 w-3.5 text-primary" />
+                        <span>Bỏ chọn tất cả</span>
+                      </>
+                    ) : (
+                      <>
+                        <Square className="h-3.5 w-3.5 text-text-muted" />
+                        <span>Chọn tất cả ({backlogPoolTasks.length})</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {canCreateTask && (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCreateOrRequest('backlog')}
+                    className="flex items-center space-x-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 text-xs font-bold text-amber-500 hover:bg-amber-500 hover:text-white transition active:scale-95 shadow-xs cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>{isStaff ? 'Yêu cầu thêm vào Backlog' : 'Thêm vào Backlog'}</span>
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Bulk Action Banner when tasks are selected */}
+            {selectedBacklogIds.length > 0 && canManageSprint && (
+              <div className="flex flex-wrap items-center justify-between gap-2.5 bg-primary/10 border-b border-primary/20 px-5 py-2.5 animate-in slide-in-from-top-1 duration-200">
+                <div className="flex items-center space-x-2 text-xs font-bold text-primary">
+                  <CheckSquare className="h-4 w-4" />
+                  <span>Đã chọn {selectedBacklogIds.length} công việc từ Backlog</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {activeSprint && (
+                    <button
+                      type="button"
+                      onClick={() => handleBulkMoveBacklog(activeSprint.id)}
+                      className="flex items-center space-x-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-3 py-1 text-xs font-bold text-white shadow-xs transition active:scale-95 cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>Đưa vào {activeSprint.name}</span>
+                    </button>
+                  )}
+
+                  {plannedSprints.map((ps) => (
+                    <button
+                      key={ps.id}
+                      type="button"
+                      onClick={() => handleBulkMoveBacklog(ps.id)}
+                      className="rounded-xl border border-surface-border bg-surface px-3 py-1 text-xs font-bold text-text-primary hover:bg-surface-alt transition active:scale-95 cursor-pointer"
+                    >
+                      ➔ {ps.name}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBacklogIds([])}
+                    className="text-xs text-text-muted hover:text-text-primary transition underline cursor-pointer px-2"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            )}
 
             {openSections.backlogPool && (
               <div className="divide-y divide-surface-border/50 bg-surface">
@@ -1180,24 +1429,28 @@ export function WorkspaceBacklogTab({
                 ) : (
                   backlogPoolTasks.map((task) => {
                     const key = task.id.substring(0, 6).toUpperCase();
+                    const isSelected = selectedBacklogIds.includes(task.id);
 
                     return (
                       <div
                         key={task.id}
                         onClick={() => onSelectTask?.(task)}
-                        className="group flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-xs transition duration-150 hover:bg-surface-alt/60 cursor-pointer"
+                        className={`group flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-xs transition duration-150 cursor-pointer ${
+                          isSelected ? 'bg-primary/5' : 'hover:bg-surface-alt/60'
+                        }`}
                       >
                         <div className="flex items-center space-x-3.5 min-w-0 flex-1">
-                          <input
-                            type="checkbox"
-                            checked={false}
-                            disabled={!canChangeTaskStatus(task)}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={() => handleRequestStatusChange(task, 'DONE')}
-                            className={`h-4 w-4 rounded-md border-surface-border text-primary focus:ring-primary transition ${
-                              canChangeTaskStatus(task) ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
-                            }`}
-                          />
+                          {/* Bulk Checkbox */}
+                          {canManageSprint && (
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => handleToggleBacklogSelect(task.id)}
+                              className="h-4 w-4 rounded border-surface-border text-primary focus:ring-primary cursor-pointer"
+                              title="Chọn công việc để điều chuyển hàng loạt"
+                            />
+                          )}
 
                           <div className="flex items-center space-x-2 shrink-0">
                             {getPriorityBadge(task.priority)}
@@ -1215,13 +1468,26 @@ export function WorkspaceBacklogTab({
                           className="flex items-center space-x-2.5 shrink-0"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {/* Quick Assign to Sprint Selector */}
+                          {/* 1-Click Move to Active Sprint */}
+                          {canManageSprint && activeSprint && (
+                            <button
+                              type="button"
+                              onClick={() => handleAssignTaskToSprint(task.id, activeSprint.id)}
+                              className="flex items-center space-x-1 rounded-xl bg-blue-500/10 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 border border-blue-500/30 px-2.5 py-1 text-[11px] font-bold transition active:scale-95 cursor-pointer"
+                              title={`Đưa ngay vào ${activeSprint.name}`}
+                            >
+                              <PlayCircle className="h-3 w-3" />
+                              <span>Đưa vào {activeSprint.name}</span>
+                            </button>
+                          )}
+
+                          {/* Quick Assign to Other Sprint Selector */}
                           <div
-                            className={`flex items-center space-x-1 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 ${
+                            className={`flex items-center space-x-1 rounded-xl border border-primary/30 bg-primary/10 px-2 py-1 ${
                               canManageSprint ? '' : 'opacity-50 cursor-not-allowed'
                             }`}
                           >
-                            <MoveRight className="h-3.5 w-3.5 text-primary" />
+                            <MoveRight className="h-3 w-3 text-primary" />
                             <select
                               value={taskSprintMapping[task.id] || 'backlog'}
                               disabled={!canManageSprint}
@@ -1231,11 +1497,11 @@ export function WorkspaceBacklogTab({
                               }`}
                             >
                               <option value="backlog" className="bg-surface text-text-muted">
-                                ➔ Ở lại Backlog
+                                Ở lại Backlog
                               </option>
                               {availableSprintOptions.map((s) => (
                                 <option key={s.id} value={s.id} className="bg-surface text-text-primary">
-                                  ➔ Đưa vào {s.name}
+                                  ➔ {s.name}
                                 </option>
                               ))}
                             </select>
@@ -1263,6 +1529,57 @@ export function WorkspaceBacklogTab({
                     );
                   })
                 )}
+
+                {/* Fast Inline Task Creation Box in Backlog */}
+                <div className="p-3 bg-surface-alt/20 border-t border-surface-border/50">
+                  {inlineAddingSprintId === 'backlog' ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={inlineTaskTitle}
+                        onChange={(e) => setInlineTaskTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleInlineQuickCreate('backlog');
+                          if (e.key === 'Escape') setInlineAddingSprintId(null);
+                        }}
+                        placeholder="Thêm nhanh công việc vào Backlog (nhấn Enter)..."
+                        className="flex-1 rounded-xl border border-primary bg-surface px-3.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:outline-none"
+                        autoFocus
+                        disabled={isSubmittingInline}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleInlineQuickCreate('backlog')}
+                        disabled={isSubmittingInline || !inlineTaskTitle.trim()}
+                        className="rounded-xl bg-primary hover:bg-primary-hover px-3 py-1.5 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 cursor-pointer"
+                      >
+                        {isSubmittingInline ? 'Đang thêm...' : 'Thêm'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInlineAddingSprintId(null);
+                          setInlineTaskTitle('');
+                        }}
+                        className="rounded-xl border border-surface-border bg-surface px-3 py-1.5 text-xs text-text-secondary hover:bg-surface-alt transition cursor-pointer"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInlineAddingSprintId('backlog');
+                        setInlineTaskTitle('');
+                      }}
+                      className="flex items-center space-x-1.5 text-xs font-semibold text-text-muted hover:text-primary transition cursor-pointer px-2 py-1"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>+ Thêm nhanh công việc vào Backlog</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -175,7 +175,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
             }`}
           >
             <Layers className="h-4 w-4" />
-            <span>Kế hoạch & Backlog</span>
+            <span>Sprint & Backlog</span>
           </button>
 
           <button
