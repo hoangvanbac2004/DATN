@@ -78,11 +78,11 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
     }
   }, [defaultProjectId]);
 
-  const effectiveProjectId = selectedProjectId || defaultProjectId || '';
+  const effectiveProjectId = selectedProjectId || defaultProjectId || (projects.length > 0 ? projects[0].id : '');
 
-  // Auto-select project if only 1 project exists
+  // Auto-select project if projects are available and none is selected yet
   useEffect(() => {
-    if (projects.length === 1 && !selectedProjectId && !defaultProjectId) {
+    if (projects.length > 0 && !selectedProjectId && !defaultProjectId) {
       setSelectedProjectId(projects[0].id);
     }
   }, [projects, selectedProjectId, defaultProjectId]);
@@ -97,20 +97,14 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
   const [projectSprints, setProjectSprints] = useState<SprintItem[]>([]);
 
   useEffect(() => {
-    if (effectiveProjectId) {
-      const sprints = getStoredSprints(effectiveProjectId);
-      setProjectSprints(sprints);
-      const active = sprints.find((s) => s.status === 'ACTIVE');
-      if (active) {
-        setSelectedSprintId(active.id);
-      } else {
-        setSelectedSprintId('backlog');
-      }
-    } else {
-      setProjectSprints([]);
-      setSelectedSprintId('backlog');
+    const targetProjId = effectiveProjectId || (projects.length > 0 ? projects[0].id : '');
+    const sprints = getStoredSprints(targetProjId || undefined);
+    setProjectSprints(sprints);
+    const active = sprints.find((s) => s.status === 'ACTIVE');
+    if (active && (!selectedSprintId || selectedSprintId === 'backlog')) {
+      setSelectedSprintId(active.id);
     }
-  }, [effectiveProjectId]);
+  }, [effectiveProjectId, projects]);
 
   const eligibleAssignees = useMemo(() => {
     return filterAssigneesForProject(members, effectiveProjectId);
@@ -310,11 +304,13 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
             <div className="space-y-1">
               <label className="text-xs font-semibold text-text-secondary">Chọn Dự án *</label>
               <select
-                value={selectedProjectId}
+                value={selectedProjectId || (projects.length > 0 ? projects[0].id : '')}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
                 className="w-full rounded-xl border border-surface-border bg-surface-alt p-2.5 text-xs font-bold text-primary focus:border-primary focus:outline-none cursor-pointer"
               >
-                <option value="">-- Chọn dự án trong Workspace --</option>
+                {projects.length === 0 && (
+                  <option value="">-- Không có dự án nào --</option>
+                )}
                 {projects.map((p) => (
                   <option key={p.id} value={p.id} className="bg-surface text-text-primary font-medium">
                     {p.name} {p.key ? `#${p.key}` : ''}
@@ -429,13 +425,11 @@ export function GlobalTaskModal({ isOpen, onClose, defaultProjectId }: GlobalTas
                 <option value="backlog" className="bg-surface text-amber-500 font-semibold">
                   Chờ trong Backlog (Chưa đưa vào Sprint)
                 </option>
-                {projectSprints
-                  .filter((s) => s.status !== 'COMPLETED')
-                  .map((s) => (
-                    <option key={s.id} value={s.id} className="bg-surface text-text-primary">
-                      {s.status === 'ACTIVE' ? `${s.name} (Đang chạy)` : `${s.name} (Kế hoạch)`}
-                    </option>
-                  ))}
+                {projectSprints.map((s) => (
+                  <option key={s.id} value={s.id} className="bg-surface text-text-primary">
+                    {s.name} {s.status === 'ACTIVE' ? '(Đang chạy)' : s.status === 'PLANNED' ? '(Kế hoạch)' : ''}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
