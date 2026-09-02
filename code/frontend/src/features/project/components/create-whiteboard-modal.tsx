@@ -10,6 +10,7 @@ import { useWorkspaceStore } from '@/store/workspace-store';
 import { useAuthStore } from '@/store/auth-store';
 import { SuccessModal } from '@/components/success-modal';
 import { saveDocApprovalRequest } from '../services/doc-approval-service';
+import { getUserProjectRole, filterProjectsForUser } from '@/features/project/services/project-member-service';
 
 export interface WhiteboardItem {
   id: string;
@@ -54,9 +55,6 @@ export function CreateWhiteboardModal({
   const [successModalDesc, setSuccessModalDesc] = useState('Bảng vẽ phác thảo tư duy mới đã được khởi tạo cho dự án.');
 
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
-  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
-  const isStaff = !isAdmin && !isManager;
 
   const { data: workspaces = [] } = useWorkspaces();
   const activeWorkspace = useWorkspaceStore((state) => state.activeWorkspace);
@@ -85,7 +83,16 @@ export function CreateWhiteboardModal({
   }, [defaultWorkspaceId, defaultProjectId, activeWorkspace, workspaces, isOpen]);
 
   const workspaceId = selectedWorkspaceId || activeWorkspace?.id || workspaces[0]?.id || '';
-  const { data: projects = [] } = useProjects(workspaceId || null);
+  const { data: rawProjects = [] } = useProjects(workspaceId || null);
+  const projects = React.useMemo(() => {
+    return filterProjectsForUser(rawProjects, user);
+  }, [rawProjects, user]);
+
+  const effectiveProjectId = selectedProjectId || defaultProjectId || projects[0]?.id || '';
+  const userProjectRole = getUserProjectRole(effectiveProjectId, user);
+  const isAdmin = userProjectRole === 'ADMIN';
+  const isManager = userProjectRole === 'MANAGER';
+  const isStaff = !isAdmin && !isManager;
 
   useEffect(() => {
     if (projects.length > 0 && (!selectedProjectId || !projects.some((p) => p.id === selectedProjectId))) {

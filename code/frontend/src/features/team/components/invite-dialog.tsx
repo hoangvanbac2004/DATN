@@ -77,12 +77,13 @@ export function InviteDialog({ isOpen, onClose, onSubmit, isLoading, workspaceId
       {
         onSuccess: () => {
           if (selectedProjectId) {
-            addMemberToProject(selectedProjectId, targetEmail);
+            const projectRole = role === 'MANAGER' ? 'MANAGER' : 'MEMBER';
+            addMemberToProject(selectedProjectId, targetEmail, projectRole);
             const existing = workspaceMembers.find(
               (m) => m.email?.toLowerCase() === targetEmail.toLowerCase()
             );
             if (existing?.userId) {
-              addMemberToProject(selectedProjectId, existing.userId);
+              addMemberToProject(selectedProjectId, existing.userId, projectRole);
             }
           }
           setStatus('SUCCESS');

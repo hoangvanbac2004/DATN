@@ -53,7 +53,7 @@ import {
   getStoredTaskSprintMapping,
   saveStoredTaskSprintMapping,
 } from '@/features/project/services/sprint-service';
-import { isUserInProject } from '@/features/project/services/project-member-service';
+import { isUserInProject, getUserProjectRole } from '@/features/project/services/project-member-service';
 
 interface WorkspaceBacklogTabProps {
   tasks: TaskDto[];
@@ -79,11 +79,12 @@ export function WorkspaceBacklogTab({
   const updateStatusMutation = useUpdateTaskStatus();
   const createTaskMutation = useCreateTask(projectId || '');
 
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
-  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
-  const isStaff = !isAdmin && !isManager;
+  const userProjectRole = getUserProjectRole(projectId || '', user);
+  const isAdmin = userProjectRole === 'ADMIN';
+  const isManager = userProjectRole === 'MANAGER';
+  const isStaff = userProjectRole === 'MEMBER';
   const canManageSprint = isAdmin || isManager;
-  const isProjectMember = !isStaff || isUserInProject(projectId || '', user);
+  const isProjectMember = userProjectRole !== 'NONE';
   const canCreateTask = !!user && isProjectMember;
 
   // Sprints & Task Mapping State

@@ -36,7 +36,7 @@ import {
   getStoredTaskSprintMapping,
   saveStoredTaskSprintMapping,
 } from '@/features/project/services/sprint-service';
-import { isUserInProject } from '@/features/project/services/project-member-service';
+import { isUserInProject, getUserProjectRole } from '@/features/project/services/project-member-service';
 
 interface WorkspaceBoardTabProps {
   tasks: TaskDto[];
@@ -84,11 +84,12 @@ export function WorkspaceBoardTab({
     newStatus: TaskStatus;
   } | null>(null);
 
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
-  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
-  const isStaff = !isAdmin && !isManager;
+  const userProjectRole = getUserProjectRole(projectId || '', user);
+  const isAdmin = userProjectRole === 'ADMIN';
+  const isManager = userProjectRole === 'MANAGER';
+  const isStaff = userProjectRole === 'MEMBER';
   const canManage = isAdmin || isManager;
-  const isProjectMember = !isStaff || isUserInProject(projectId || '', user);
+  const isProjectMember = userProjectRole !== 'NONE';
   const canCreateTask = !!user && isProjectMember;
 
   // Load Sprints & Mapping

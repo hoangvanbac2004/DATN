@@ -36,7 +36,7 @@ import { CreateWikiDocModal, WikiDocItem } from '@/features/project/components/c
 import { CreateWhiteboardModal, WhiteboardItem } from '@/features/project/components/create-whiteboard-modal';
 import { RealtimeListener } from '@/features/realtime/components/realtime-listener';
 import { ProjectMembersTab } from '@/features/project/components/tabs/ProjectMembersTab';
-import { isUserInProject } from '@/features/project/services/project-member-service';
+import { isUserInProject, getUserProjectRole } from '@/features/project/services/project-member-service';
 import type { TaskDto } from '@/features/task/types';
 
 type ProjectTab = 'summary' | 'backlog' | 'board' | 'timeline' | 'members' | 'wiki' | 'whiteboard';
@@ -59,10 +59,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
   const [selectedBoardSprintId, setSelectedBoardSprintId] = useState<string | undefined>(undefined);
 
   const currentUser = useAuthStore((state) => state.user);
-  const isAdmin = currentUser?.roles?.includes('ROLE_ADMIN') || currentUser?.email === 'admin@gmail.com';
-  const isManager = !isAdmin && (currentUser?.roles?.includes('ROLE_MANAGER') || currentUser?.email === 'manager@gmail.com');
-  const isStaff = !isAdmin && !isManager;
-  const isMemberOfThisProject = isUserInProject(projectId, currentUser);
+  const userProjectRole = getUserProjectRole(projectId, currentUser);
+  const isAdmin = userProjectRole === 'ADMIN';
+  const isManager = userProjectRole === 'MANAGER';
+  const isStaff = userProjectRole === 'MEMBER';
+  const isMemberOfThisProject = userProjectRole !== 'NONE';
 
   // Detailed Modal View States
   const [selectedWikiDetail, setSelectedWikiDetail] = useState<WikiDocItem | null>(null);
