@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { PenTool, Plus, X, Loader2, LayoutGrid } from 'lucide-react';
+import { PenTool, Plus, X, Loader2, LayoutGrid, ShieldCheck, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import { useWorkspaces } from '@/features/workspace/hooks/use-workspace';
 import { useProjects } from '@/features/project/hooks/use-project';
 import { useWorkspaceStore } from '@/store/workspace-store';
+import { useAuthStore } from '@/store/auth-store';
 import { SuccessModal } from '@/components/success-modal';
+import { saveDocApprovalRequest } from '../services/doc-approval-service';
 
 export interface WhiteboardItem {
   id: string;
@@ -47,6 +50,13 @@ export function CreateWhiteboardModal({
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successModalTitle, setSuccessModalTitle] = useState('Tạo Bảng vẽ thành công!');
+  const [successModalDesc, setSuccessModalDesc] = useState('Bảng vẽ phác thảo tư duy mới đã được khởi tạo cho dự án.');
+
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
+  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
+  const isStaff = !isAdmin && !isManager;
 
   const { data: workspaces = [] } = useWorkspaces();
   const activeWorkspace = useWorkspaceStore((state) => state.activeWorkspace);
@@ -91,18 +101,45 @@ export function CreateWhiteboardModal({
 
     setIsLoading(true);
     setTimeout(() => {
-      const newWb: WhiteboardItem = {
-        id: `wb-${Date.now()}`,
-        title: title.trim(),
-        status: 'Đang hoạt động',
-        description: description.trim() || 'Bảng vẽ trực quan hỗ trợ phác thảo sơ đồ và ý tưởng cho dự án.',
-        workspaceId: selectedWorkspaceId,
-        projectId: selectedProjectId,
-        updatedAt: 'Vừa xong',
-        activeMembersCount: 1,
-      };
+      if (isStaff) {
+        // Staff role: Submit approval request
+        saveDocApprovalRequest({
+          id: `doc-req-${Date.now()}`,
+          type: 'WHITEBOARD',
+          title: title.trim(),
+          description: description.trim() || 'Bảng vẽ trực quan hỗ trợ phác thảo sơ đồ và ý tưởng cho dự án.',
+          initialElements,
+          workspaceId: selectedWorkspaceId,
+          projectId: selectedProjectId,
+          requesterId: user?.id || 'unknown',
+          requesterName: user?.fullName || 'Nhân viên',
+          requesterEmail: user?.email || '',
+          status: 'PENDING',
+          createdAt: new Date().toLocaleString('vi-VN'),
+        });
 
-      onCreated(newWb, initialElements);
+        toast.success(`Đã gửi yêu cầu phê duyệt Bảng vẽ "${title.trim()}" tới Quản lý/Admin!`);
+        setSuccessModalTitle('Đã gửi yêu cầu phê duyệt!');
+        setSuccessModalDesc('Bảng vẽ của bạn đã được chuyển tới Quản lý / Quản trị viên để kiểm duyệt trước khi xuất bản.');
+      } else {
+        // Manager/Admin: directly create
+        const newWb: WhiteboardItem = {
+          id: `wb-${Date.now()}`,
+          title: title.trim(),
+          status: 'Đang hoạt động',
+          description: description.trim() || 'Bảng vẽ trực quan hỗ trợ phác thảo sơ đồ và ý tưởng cho dự án.',
+          workspaceId: selectedWorkspaceId,
+          projectId: selectedProjectId,
+          updatedAt: 'Vừa xong',
+          activeMembersCount: 1,
+        };
+
+        onCreated(newWb, initialElements);
+        toast.success(`Đã tạo Bảng vẽ "${title.trim()}" thành công!`);
+        setSuccessModalTitle('Tạo Bảng vẽ thành công!');
+        setSuccessModalDesc('Bảng vẽ phác thảo tư duy mới đã được khởi tạo cho dự án.');
+      }
+
       setIsLoading(false);
       setIsSuccessModalOpen(true);
       setTimeout(() => {
@@ -113,6 +150,7 @@ export function CreateWhiteboardModal({
       }, 1500);
     }, 300);
   };
+
 
   const modalContent = (
     <>
@@ -147,6 +185,19 @@ export function CreateWhiteboardModal({
               <X className="h-4 w-4" />
             </button>
           </div>
+
+          {/* Staff Approval Notice Banner */}
+          {isStaff && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400 flex items-start space-x-2.5">
+              <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Yêu cầu kiểm duyệt (Quyền Staff)</p>
+                <p className="text-[11px] leading-relaxed text-text-secondary">
+                  Bảng vẽ bạn tạo sẽ được gửi tới <strong>Quản lý / Quản trị viên</strong> để phê duyệt trước khi chính thức xuất bản vào dự án.
+                </p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             {/* Preset Badge Banner if created from Template */}
@@ -244,6 +295,11 @@ export function CreateWhiteboardModal({
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isStaff ? (
+                  <>
+                    <Send className="h-4 w-4" />
+                    <span>Gửi yêu cầu phê duyệt</span>
+                  </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4" />
@@ -259,8 +315,8 @@ export function CreateWhiteboardModal({
       <SuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
-        title="Tạo Bảng vẽ thành công!"
-        description="Bảng vẽ phác thảo tư duy mới đã được khởi tạo cho dự án."
+        title={successModalTitle}
+        description={successModalDesc}
       />
     </>
   );

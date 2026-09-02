@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, BookOpen, Loader2, Plus, Paperclip } from 'lucide-react';
+import { X, BookOpen, Loader2, Plus, Paperclip, ShieldCheck, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import { useWorkspaces } from '@/features/workspace/hooks/use-workspace';
 import { useProjects } from '@/features/project/hooks/use-project';
 import { useWorkspaceStore } from '@/store/workspace-store';
+import { useAuthStore } from '@/store/auth-store';
+import { saveDocApprovalRequest } from '../services/doc-approval-service';
 
 export interface WikiDocItem {
   id: string;
@@ -46,6 +49,13 @@ export function CreateWikiDocModal({
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successModalTitle, setSuccessModalTitle] = useState('Tạo tài liệu Wiki thành công!');
+  const [successModalDesc, setSuccessModalDesc] = useState('Tài liệu tri thức mới đã được khởi tạo và lưu trữ cho dự án.');
+
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.email === 'admin@gmail.com';
+  const isManager = !isAdmin && (user?.roles?.includes('ROLE_MANAGER') || user?.email === 'manager@gmail.com');
+  const isStaff = !isAdmin && !isManager;
 
   const { data: workspaces = [] } = useWorkspaces();
   const activeWorkspace = useWorkspaceStore((state) => state.activeWorkspace);
@@ -79,20 +89,47 @@ export function CreateWikiDocModal({
 
     setIsLoading(true);
     setTimeout(() => {
-      const newDoc: WikiDocItem = {
-        id: `wiki-${Date.now()}`,
-        title: title.trim(),
-        category,
-        version: 'v1.0',
-        summary: summary.trim() || 'Tài liệu hướng dẫn và quy trình tác nghiệp cho dự án.',
-        workspaceId: selectedWorkspaceId,
-        projectId: selectedProjectId,
-        updatedAt: 'Vừa xong',
-        updatedBy: 'Bạn (Quản lý)',
-        attachedFilesCount: attachedFiles.length,
-      };
+      if (isStaff) {
+        // Staff role: Send approval request to manager/admin
+        saveDocApprovalRequest({
+          id: `doc-req-${Date.now()}`,
+          type: 'WIKI',
+          title: title.trim(),
+          category,
+          summary: summary.trim() || 'Tài liệu hướng dẫn và quy trình tác nghiệp cho dự án.',
+          version: 'v1.0',
+          workspaceId: selectedWorkspaceId,
+          projectId: selectedProjectId,
+          requesterId: user?.id || 'unknown',
+          requesterName: user?.fullName || 'Nhân viên',
+          requesterEmail: user?.email || '',
+          status: 'PENDING',
+          createdAt: new Date().toLocaleString('vi-VN'),
+        });
 
-      onCreated(newDoc);
+        toast.success(`Đã gửi yêu cầu phê duyệt tài liệu Wiki "${title.trim()}" tới Quản lý/Admin!`);
+        setSuccessModalTitle('Đã gửi yêu cầu phê duyệt!');
+        setSuccessModalDesc('Tài liệu Wiki của bạn đã được chuyển tới Quản lý / Quản trị viên để kiểm duyệt trước khi xuất bản.');
+      } else {
+        // Manager/Admin: directly create
+        const newDoc: WikiDocItem = {
+          id: `wiki-${Date.now()}`,
+          title: title.trim(),
+          category,
+          version: 'v1.0',
+          summary: summary.trim() || 'Tài liệu hướng dẫn và quy trình tác nghiệp cho dự án.',
+          workspaceId: selectedWorkspaceId,
+          projectId: selectedProjectId,
+          updatedAt: 'Vừa xong',
+          updatedBy: user?.fullName || 'Quản lý',
+          attachedFilesCount: attachedFiles.length,
+        };
+        onCreated(newDoc);
+        toast.success(`Đã tạo tài liệu Wiki "${title.trim()}" thành công!`);
+        setSuccessModalTitle('Tạo tài liệu Wiki thành công!');
+        setSuccessModalDesc('Tài liệu tri thức mới đã được khởi tạo và lưu trữ cho dự án.');
+      }
+
       setIsLoading(false);
       setIsSuccessModalOpen(true);
       setTimeout(() => {
@@ -104,6 +141,7 @@ export function CreateWikiDocModal({
       }, 1500);
     }, 300);
   };
+
 
   const modalContent = (
     <div
@@ -137,6 +175,19 @@ export function CreateWikiDocModal({
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Staff Approval Notice Banner */}
+        {isStaff && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400 flex items-start space-x-2.5">
+            <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold">Yêu cầu kiểm duyệt (Quyền Staff)</p>
+              <p className="text-[11px] leading-relaxed text-text-secondary">
+                Tài liệu Wiki bạn tạo sẽ được gửi tới <strong>Quản lý / Quản trị viên</strong> để phê duyệt trước khi chính thức xuất bản vào dự án.
+              </p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Workspace & Project Selectors Grid */}
@@ -253,10 +304,15 @@ export function CreateWikiDocModal({
             <button
               type="submit"
               disabled={isLoading || !title.trim() || !selectedWorkspaceId || !selectedProjectId}
-              className="flex items-center space-x-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-primary-hover transition active:scale-95 disabled:opacity-50"
+              className="flex items-center space-x-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-primary-hover transition active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isStaff ? (
+                <>
+                  <Send className="h-4 w-4" />
+                  <span>Gửi yêu cầu phê duyệt</span>
+                </>
               ) : (
                 <>
                   <Plus className="h-4 w-4" />
@@ -271,8 +327,8 @@ export function CreateWikiDocModal({
       <SuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
-        title="Tạo tài liệu Wiki thành công!"
-        description="Tài liệu tri thức mới đã được khởi tạo và lưu trữ cho dự án."
+        title={successModalTitle}
+        description={successModalDesc}
       />
     </div>
   );
