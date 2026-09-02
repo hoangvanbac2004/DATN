@@ -29,8 +29,6 @@ import { WorkspaceTimelineTab } from '@/features/workspace/components/tabs/Works
 import { WorkspaceFormsTab } from '@/features/workspace/components/tabs/WorkspaceFormsTab';
 import { TaskDetailModal } from '@/features/task/components/task-detail-modal';
 import { GlobalTaskModal } from '@/features/task/components/global-task-modal';
-import { PendingTaskRequestsSection } from '@/features/task/components/pending-task-requests-section';
-import { PendingDocRequestsSection } from '@/features/project/components/pending-doc-requests-section';
 import { CreateWikiDocModal, WikiDocItem } from '@/features/project/components/create-wiki-doc-modal';
 import { CreateWhiteboardModal, WhiteboardItem } from '@/features/project/components/create-whiteboard-modal';
 import { RealtimeListener } from '@/features/realtime/components/realtime-listener';
@@ -230,17 +228,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         {/* Tab Content 1: Project Summary Overview */}
         {activeTab === 'summary' && (
           <div className="space-y-6">
-            {/* Task Approval Requests Section */}
-            <PendingTaskRequestsSection projectId={projectId} workspaceId={project?.workspaceId} />
-
-            {/* Wiki & Whiteboard Approval Requests Section */}
-            <PendingDocRequestsSection
-              projectId={projectId}
-              workspaceId={project?.workspaceId}
-              onApproveDoc={handleWikiCreated}
-              onApproveWhiteboard={handleWhiteboardCreated}
-            />
-
             {/* Top Stat Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-surface-border bg-surface p-5 space-y-2 shadow-xs">
@@ -492,12 +479,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         {/* Tab Content 5: Tài liệu Wiki */}
         {activeTab === 'wiki' && (
           <div className="space-y-6">
-            <PendingDocRequestsSection
-              projectId={projectId}
-              workspaceId={project?.workspaceId}
-              onApproveDoc={handleWikiCreated}
-            />
-
             <div className="rounded-2xl border border-surface-border bg-surface p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-surface-border pb-4">
               <div>
@@ -559,12 +540,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ projec
         {/* Tab Content 6: Project-Bound Whiteboard Canvas */}
         {activeTab === 'whiteboard' && (
           <div className="space-y-6">
-            <PendingDocRequestsSection
-              projectId={projectId}
-              workspaceId={project?.workspaceId}
-              onApproveWhiteboard={handleWhiteboardCreated}
-            />
-
             <div className="rounded-2xl border border-surface-border bg-surface p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-surface-border pb-4">
               <div>
